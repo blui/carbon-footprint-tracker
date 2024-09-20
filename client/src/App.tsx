@@ -1,19 +1,26 @@
-// Importing React for building the component
+// client/src/App.tsx
+
 import React from "react";
+import OrganizationForm from "./components/OrganizationForm";
+import SystemForm from "./components/SystemForm";
+import SystemData from "./components/SystemData";
 
-// Importing the Dashboard component
-import Dashboard from "./components/Dashboard";
+const App = () => {
+  const orgId = "12345"; // Example organization ID for testing
 
-// The App component is the main entry point of the application.
-// It renders the Dashboard component as its child.
-const App: React.FC = () => {
   return (
     <div>
-      {/* Rendering the Dashboard component */}
-      <Dashboard />
+      <h1>Carbon Footprint Tracker</h1>
+      {/* Form to create an organization */}
+      <OrganizationForm />
+
+      {/* Form to add a system */}
+      <SystemForm orgId={orgId} />
+
+      {/* Display emissions and recommendations */}
+      <SystemData systemId="system123" />
     </div>
   );
 };
 
-// Exporting the App component to be rendered by the root file (index.tsx)
 export default App;

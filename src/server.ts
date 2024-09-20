@@ -1,29 +1,21 @@
 // src/server.ts
 
-// Importing necessary modules from Express
 import express, { Request, Response } from "express";
-
-// Importing API routes
 import apiRoutes from "./routes/api";
+import "./db"; // Import MongoDB connection
 
-// Initializing an Express application
 const app = express();
-
-// Setting the port, defaulting to 3000 if no environment variable is set
 const port = process.env.PORT || 3000;
 
-// Middleware to parse incoming JSON requests
-app.use(express.json()); // Allows the app to accept and handle JSON data
+app.use(express.json()); // Middleware to parse JSON payloads
+app.use("/api", apiRoutes); // Use API routes
 
-// Defining a route for all API-related endpoints
-app.use("/api", apiRoutes);
-
-// Basic route to check if the server is running
+// Root route to check if the server is running
 app.get("/", (req: Request, res: Response) => {
   res.send("Carbon Footprint Tracker API is up and running!");
 });
 
-// Starting the server and listening on the defined port
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
