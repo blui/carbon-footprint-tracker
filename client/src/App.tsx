@@ -1,35 +1,46 @@
+// client/src/App.tsx
+
 import React, { useState, useEffect } from "react";
 import OrganizationForm from "./components/OrganizationForm";
 import SystemForm from "./components/SystemForm";
+import OrganizationList from "./components/OrganizationList"; // Import the organization list component
 import API_BASE_URL from "./config";
 
-const App = () => {
+const App: React.FC = () => {
   const [orgId, setOrgId] = useState<string | null>(null); // Selected organization ID
-  const [systems, setSystems] = useState<any[]>([]); // List of systems for the organization
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Track selected organization name for display
+  const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Selected organization name
 
   // Function to fetch systems for a specific organization
   const fetchSystems = (orgId: string) => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
       .then((res) => res.json())
-      .then((data) => setSystems(data))
-      .catch((err) => console.error("Error fetching systems:", err));
+      .then((data) => setSystems(data)) // Store the systems in state
+      .catch((err) => console.error("Error fetching systems:", err)); // Handle errors
   };
 
-  // Fetch systems when an organization is selected
+  // useEffect hook to fetch systems when an organization is selected
   useEffect(() => {
     if (orgId) {
-      fetchSystems(orgId);
+      fetchSystems(orgId); // Fetch systems when orgId changes
     }
-  }, [orgId]);
+  }, [orgId]); // Dependency array ensures this runs only when orgId changes
 
   // Handle organization creation
   const handleOrganizationCreated = (
     createdOrgId: string,
     createdOrgName: string
   ) => {
-    setOrgId(createdOrgId);
-    setSelectedOrg(createdOrgName);
+    setOrgId(createdOrgId); // Set the selected organization ID
+    setSelectedOrg(createdOrgName); // Set the selected organization name
+    setSystems([]); // Reset systems list for the new organization
+  };
+
+  // Handle system addition
+  const handleSystemAdded = () => {
+    if (orgId) {
+      fetchSystems(orgId); // Refresh systems after a new one is added
+    }
   };
 
   return (
@@ -39,12 +50,15 @@ const App = () => {
       {/* Form to create an organization */}
       <OrganizationForm onOrganizationCreated={handleOrganizationCreated} />
 
-      {/* Form to add a system to the organization */}
+      {/* Conditionally render the system form if an organization is selected */}
       {orgId && (
-        <SystemForm orgId={orgId} onSystemAdded={() => fetchSystems(orgId)} />
+        <div>
+          <h2>Add a System to {selectedOrg}</h2>
+          <SystemForm orgId={orgId} onSystemAdded={handleSystemAdded} />
+        </div>
       )}
 
-      {/* Display list of systems for the organization */}
+      {/* Conditionally render the list of systems if any exist for the selected organization */}
       {systems.length > 0 && (
         <div>
           <h2>Systems for {selectedOrg}</h2>
@@ -57,6 +71,9 @@ const App = () => {
           </ul>
         </div>
       )}
+
+      {/* Render all organizations and their systems */}
+      <OrganizationList />
     </div>
   );
 };

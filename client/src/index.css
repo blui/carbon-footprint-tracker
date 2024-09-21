@@ -1,15 +1,60 @@
 /* client/src/index.css */
 
+/* General body styling */
 body {
-  margin: 0;
+  margin: 0; /* Remove default margin */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    sans-serif; /* Use a system font stack for better performance */
+  -webkit-font-smoothing: antialiased; /* Smooths fonts on macOS */
+  -moz-osx-font-smoothing: grayscale; /* Smooths fonts on Firefox macOS */
 }
 
+/* Styling for code elements */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+    monospace; /* Use a monospace font for code elements */
+}
+
+/* Styling for the organization grid and cards */
+
+/* Grid layout for displaying organizations */
+.organization-grid {
+  display: grid; /* Use CSS Grid layout */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(250px, 1fr)
+  ); /* Responsive grid with auto-fill; grid items will fill columns of at least 250px */
+  gap: 20px; /* Space between grid items */
+}
+
+/* Card styling for each organization */
+.organization-card {
+  background-color: #f8f9fa; /* Light background for the card */
+  padding: 20px; /* Padding inside the card */
+  border-radius: 10px; /* Rounded corners for a modern look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for a raised effect */
+}
+
+/* Styling for the organization name */
+.organization-card h3 {
+  margin-top: 0; /* Remove default top margin */
+  font-size: 1.5rem; /* Set font size */
+  color: #007bff; /* Blue color for organization names */
+}
+
+/* Remove default padding and list styling for system list inside each organization */
+.organization-card ul {
+  padding-left: 0;
+  list-style-type: none; /* Remove bullet points */
+}
+
+/* Styling for each system item inside the organization */
+.organization-card ul li {
+  margin-bottom: 10px; /* Space between list items */
+}
+
+/* Highlight the type of each system */
+.organization-card ul li strong {
+  color: #343a40; /* Dark color for system type */
 }
