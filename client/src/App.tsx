@@ -1,57 +1,62 @@
-// client/src/App.tsx
-
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import OrganizationForm from "./components/OrganizationForm";
 import SystemForm from "./components/SystemForm";
-import SystemData from "./components/SystemData";
 import API_BASE_URL from "./config";
 
 const App = () => {
-  const [orgId, setOrgId] = useState<string | null>(null); // Store the selected organization ID
-  const [systemId, setSystemId] = useState<string | null>(null); // Store the selected system ID
-  const [systems, setSystems] = useState<any[]>([]); // Store the list of systems for an organization
+  const [orgId, setOrgId] = useState<string | null>(null); // Selected organization ID
+  const [systems, setSystems] = useState<any[]>([]); // List of systems for the organization
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Track selected organization name for display
 
-  // Fetch systems for the selected organization
+  // Function to fetch systems for a specific organization
+  const fetchSystems = (orgId: string) => {
+    fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
+      .then((res) => res.json())
+      .then((data) => setSystems(data))
+      .catch((err) => console.error("Error fetching systems:", err));
+  };
+
+  // Fetch systems when an organization is selected
   useEffect(() => {
     if (orgId) {
-      fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
-        .then((res) => res.json())
-        .then((data) => {
-          setSystems(data); // Store the systems
-        })
-        .catch((err) => console.error("Error fetching systems:", err));
+      fetchSystems(orgId);
     }
   }, [orgId]);
+
+  // Handle organization creation
+  const handleOrganizationCreated = (
+    createdOrgId: string,
+    createdOrgName: string
+  ) => {
+    setOrgId(createdOrgId);
+    setSelectedOrg(createdOrgName);
+  };
 
   return (
     <div>
       <h1>Carbon Footprint Tracker</h1>
 
       {/* Form to create an organization */}
-      <OrganizationForm />
+      <OrganizationForm onOrganizationCreated={handleOrganizationCreated} />
 
-      {/* Form to add a system to the organization (pass orgId to SystemForm) */}
-      {orgId && <SystemForm orgId={orgId} />}
-
-      {/* Dropdown to select system and show data */}
-      {systems.length > 0 && (
-        <div>
-          <h2>Select a System</h2>
-          <select onChange={(e) => setSystemId(e.target.value)} defaultValue="">
-            <option value="" disabled>
-              Select a system
-            </option>
-            {systems.map((system) => (
-              <option key={system._id} value={system._id}>
-                {system.type} - {system.details}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Form to add a system to the organization */}
+      {orgId && (
+        <SystemForm orgId={orgId} onSystemAdded={() => fetchSystems(orgId)} />
       )}
 
-      {/* Show system data once a system is selected */}
-      {systemId && <SystemData systemId={systemId} />}
+      {/* Display list of systems for the organization */}
+      {systems.length > 0 && (
+        <div>
+          <h2>Systems for {selectedOrg}</h2>
+          <ul>
+            {systems.map((system) => (
+              <li key={system._id}>
+                {system.type}: {system.details}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

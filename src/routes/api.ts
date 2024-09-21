@@ -57,24 +57,4 @@ router.get(
   }
 );
 
-// Route to fetch emissions and recommendations for a system
-router.get("/systems/:systemId/data", async (req: Request, res: Response) => {
-  try {
-    const { systemId } = req.params;
-    const system = await System.findById(systemId);
-    if (!system) return res.status(404).json({ error: "System not found" });
-
-    // Simulate external data fetching for emissions and recommendations
-    const data = {
-      emissions: `${Math.floor(Math.random() * 100)} tons of CO2`,
-      efficiency: `${Math.floor(Math.random() * 100)}% efficiency`,
-      recommendations: `Optimize the use of ${system.type} to reduce emissions.`,
-    };
-
-    res.status(200).json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching data" });
-  }
-});
-
 export default router;

@@ -1,20 +1,21 @@
-// client/src/components/SystemForm.tsx
-
 import React, { useState } from "react";
 import API_BASE_URL from "../config";
 
-const SystemForm = ({ orgId }: { orgId: string }) => {
-  const [type, setType] = useState(""); // Store the system type
-  const [details, setDetails] = useState(""); // Store the system details
-  const [error, setError] = useState<string | null>(null); // Store any error messages
+interface SystemFormProps {
+  orgId: string; // Organization ID to associate the system with
+  onSystemAdded: () => void; // Callback to notify when a system is added
+}
 
-  // Handle form submission
+const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
+  const [type, setType] = useState(""); // System type state
+  const [details, setDetails] = useState(""); // System details state
+  const [error, setError] = useState<string | null>(null); // Error state
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError(null); // Clear any previous errors
 
     try {
-      // Send a POST request to add the system to the organization
       const response = await fetch(
         `${API_BASE_URL}/api/organizations/${orgId}/systems`,
         {
@@ -28,8 +29,7 @@ const SystemForm = ({ orgId }: { orgId: string }) => {
         throw new Error("Failed to add system");
       }
 
-      const data = await response.json();
-      console.log("System added:", data);
+      onSystemAdded(); // Notify parent component (App.tsx) to refresh systems list
     } catch (err: unknown) {
       setError(`Error adding system: ${(err as Error).message}`);
     }
@@ -42,7 +42,7 @@ const SystemForm = ({ orgId }: { orgId: string }) => {
         type="text"
         value={type}
         onChange={(e) => setType(e.target.value)}
-        placeholder="System Type (e.g., Supply Chain, Vehicles)"
+        placeholder="System Type"
         required
       />
       <textarea

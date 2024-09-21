@@ -1,19 +1,21 @@
-// client/src/components/OrganizationForm.tsx
-
 import React, { useState } from "react";
 import API_BASE_URL from "../config";
 
-const OrganizationForm = () => {
-  const [name, setName] = useState(""); // Store the organization name
-  const [error, setError] = useState<string | null>(null); // Store any error messages
+interface OrganizationFormProps {
+  onOrganizationCreated: (orgId: string, orgName: string) => void; // Prop to notify when organization is created
+}
 
-  // Handle form submission
+const OrganizationForm: React.FC<OrganizationFormProps> = ({
+  onOrganizationCreated,
+}) => {
+  const [name, setName] = useState(""); // State to hold the organization name
+  const [error, setError] = useState<string | null>(null); // Error state
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // Clear any previous errors
 
     try {
-      // Send a POST request to create the organization
       const response = await fetch(`${API_BASE_URL}/api/organizations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -25,9 +27,9 @@ const OrganizationForm = () => {
       }
 
       const data = await response.json();
-      console.log("Organization created:", data);
+      onOrganizationCreated(data._id, data.name); // Notify parent component (App.tsx)
     } catch (err: unknown) {
-      setError(`Error creating organization: ${(err as Error).message}`); // Handle the error
+      setError(`Error creating organization: ${(err as Error).message}`);
     }
   };
 
