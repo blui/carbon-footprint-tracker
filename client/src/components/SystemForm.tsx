@@ -3,36 +3,23 @@
 import React, { useState } from "react";
 import API_BASE_URL from "../config";
 
-// Define the props for the SystemForm component
 interface SystemFormProps {
-  organizations: { _id: string; name: string }[]; // Array of organizations
-  onSystemAdded: () => void; // Callback for notifying the parent component
+  orgId: string;
+  onSystemAdded: () => void;
 }
 
-const SystemForm: React.FC<SystemFormProps> = ({
-  organizations,
-  onSystemAdded,
-}) => {
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null); // Track selected organization ID
-  const [type, setType] = useState<string>(""); // System type
-  const [details, setDetails] = useState<string>(""); // System details
-  const [error, setError] = useState<string | null>(null); // Error state
+const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
+  const [type, setType] = useState("");
+  const [details, setDetails] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
-    setError(null); // Clear previous errors
-
-    // Ensure an organization is selected
-    if (!selectedOrgId) {
-      setError("Please select an organization.");
-      return;
-    }
+    e.preventDefault();
+    setError(null);
 
     try {
-      // Send POST request to add a system to the selected organization
       const response = await fetch(
-        `${API_BASE_URL}/api/organizations/${selectedOrgId}/systems`,
+        `${API_BASE_URL}/api/organizations/${orgId}/systems`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -44,56 +31,59 @@ const SystemForm: React.FC<SystemFormProps> = ({
         throw new Error("Failed to add system");
       }
 
-      // Clear form fields after successful submission
+      // Clear the form after a successful addition
       setType("");
       setDetails("");
-
-      onSystemAdded(); // Notify parent component to refresh system list
+      onSystemAdded();
     } catch (err: unknown) {
       setError(`Error adding system: ${(err as Error).message}`);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Add System</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 p-4 bg-gray-50 rounded-lg shadow-lg"
+    >
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">Add System</h2>
 
-      {/* Dropdown to select an organization */}
-      <select
-        value={selectedOrgId || ""}
-        onChange={(e) => setSelectedOrgId(e.target.value)}
-        required
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2" htmlFor="systemType">
+          System Type
+        </label>
+        <input
+          type="text"
+          id="systemType"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter system type (e.g., Vehicles, Supply Chain)"
+          required
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2" htmlFor="systemDetails">
+          System Details
+        </label>
+        <textarea
+          id="systemDetails"
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter details for the system"
+          required
+        />
+      </div>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
       >
-        <option value="">Select Organization</option>
-        {organizations.map((org) => (
-          <option key={org._id} value={org._id}>
-            {org.name}
-          </option>
-        ))}
-      </select>
-
-      {/* Input field for system type */}
-      <input
-        type="text"
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        placeholder="System Type (e.g., Supply Chain, Vehicles)"
-        required
-      />
-
-      {/* Textarea for system details */}
-      <textarea
-        value={details}
-        onChange={(e) => setDetails(e.target.value)}
-        placeholder="System Details"
-        required
-      />
-
-      {/* Submit button */}
-      <button type="submit">Add System</button>
-
-      {/* Display any error messages */}
-      {error && <p>{error}</p>}
+        Add System
+      </button>
     </form>
   );
 };

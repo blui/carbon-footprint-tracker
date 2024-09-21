@@ -3,66 +3,71 @@
 import React, { useState } from "react";
 import API_BASE_URL from "../config";
 
-// Define the props expected by the OrganizationForm component
 interface OrganizationFormProps {
-  onOrganizationCreated: (orgId: string, orgName: string) => void; // Function prop to notify parent component when organization is created
+  onOrganizationCreated: (orgId: string, orgName: string) => void;
 }
 
-// Main functional component for creating an organization
 const OrganizationForm: React.FC<OrganizationFormProps> = ({
   onOrganizationCreated,
 }) => {
-  const [name, setName] = useState<string>(""); // State to store the organization name
-  const [error, setError] = useState<string | null>(null); // State to store any error messages
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-    setError(null); // Reset any previous error messages
+    e.preventDefault();
+    setError(null);
 
     try {
-      // Send a POST request to the backend API to create a new organization
       const response = await fetch(`${API_BASE_URL}/api/organizations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // Specify JSON content
-        body: JSON.stringify({ name }), // Send the organization name in the request body
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
       });
 
-      // Handle any error responses
       if (!response.ok) {
         throw new Error("Failed to create organization");
       }
 
-      // Parse the response data
       const data = await response.json();
-
-      // Notify the parent component that a new organization was created
       onOrganizationCreated(data._id, data.name);
-
-      // Reset the form by clearing the input field
-      setName("");
+      setName(""); // Clear the form after submission
     } catch (err: unknown) {
-      // Set an error message if the request fails
       setError(`Error creating organization: ${(err as Error).message}`);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create Organization</h2>
-      {/* Input field for organization name */}
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)} // Update state as user types
-        placeholder="Organization Name"
-        required // Field is required
-      />
-      {/* Submit button */}
-      <button type="submit">Create</button>
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 p-4 bg-gray-50 rounded-lg shadow-lg"
+    >
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        Create Organization
+      </h2>
 
-      {/* Display any error messages */}
-      {error && <p>{error}</p>}
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2" htmlFor="organizationName">
+          Organization Name
+        </label>
+        <input
+          type="text"
+          id="organizationName"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter organization name"
+          required
+        />
+      </div>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+      >
+        Create Organization
+      </button>
     </form>
   );
 };

@@ -66,58 +66,68 @@ const App: React.FC = () => {
   ) => {
     setOrgId(selectedOrgId);
     setSelectedOrg(selectedOrgName);
-    fetchSystems(selectedOrgId);
+    fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
 
   return (
-    <>
-      {/* Application Header (Full width) */}
-      <header className="app-header">
-        <h1>DataBridge Log Analyzer</h1> {/* Name of the application */}
+    <div className="min-h-screen bg-gray-100">
+      {/* Application Header */}
+      <header className="bg-blue-600 text-white text-center py-6 shadow-lg">
+        <h1 className="text-3xl font-bold">DataBridge Log Analyzer</h1>
       </header>
 
-      <div className="app-container">
-        {/* Left-side Navigation Pane */}
-        <div className="sidebar">
-          <h2 className="sidebar-title">Organizations</h2>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-72 bg-gray-800 text-white p-6 h-screen">
+          <h2 className="text-xl font-semibold mb-4 text-center">
+            Organizations
+          </h2>
           <OrganizationList
             organizations={organizations}
             onSelect={handleSelectOrganization}
           />
-          <div style={{ marginTop: "20px" }}>
+          <div className="mt-8">
             <OrganizationForm
               onOrganizationCreated={handleOrganizationCreated}
             />
           </div>
         </div>
 
-        {/* Main content area */}
-        <div className="main-content">
+        {/* Main Content Area */}
+        <div className="flex-grow p-10 bg-white shadow-lg">
           {selectedOrg ? (
             <>
-              <h2 className="org-title">{selectedOrg}</h2>
-              <SystemForm
-                organizations={organizations}
-                onSystemAdded={handleSystemAdded}
-              />
+              <h2 className="text-2xl font-semibold text-gray-700 border-b-2 border-blue-600 pb-2">
+                {selectedOrg}
+              </h2>
+              {/* Pass orgId to SystemForm instead of organizations */}
+              <SystemForm orgId={orgId!} onSystemAdded={handleSystemAdded} />
               {systems.length > 0 ? (
-                <ul className="system-list">
+                <ul className="mt-6">
                   {systems.map((system) => (
-                    <li key={system._id} className="system-item">
-                      <strong>{system.type}</strong>: {system.details}
+                    <li
+                      key={system._id}
+                      className="py-4 border-b border-gray-300"
+                    >
+                      <strong className="font-semibold">{system.type}</strong>:{" "}
+                      {system.details}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>No systems available for this organization.</p>
+                <p className="text-gray-500 mt-4">
+                  No systems available for this organization.
+                </p>
               )}
             </>
           ) : (
-            <p>Please select an organization from the sidebar.</p>
+            <p className="text-gray-500">
+              Please select an organization from the sidebar.
+            </p>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
