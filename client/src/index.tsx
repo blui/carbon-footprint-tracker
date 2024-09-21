@@ -3,9 +3,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import "./index.css"; // Optional: Importing styles
+import "./index.css"; // Import styles
 
-// Rendering the root App component
 ReactDOM.render(
   <React.StrictMode>
     <App />

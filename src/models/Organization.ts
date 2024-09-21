@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 const OrganizationSchema = new mongoose.Schema({
   name: { type: String, required: true }, // Organization name
   createdAt: { type: Date, default: Date.now }, // Creation date
-  systems: [{ type: mongoose.Schema.Types.ObjectId, ref: "System" }], // Systems within the organization
+  systems: [{ type: mongoose.Schema.Types.ObjectId, ref: "System" }], // Systems linked to the organization
 });
 
 // Create the Organization model

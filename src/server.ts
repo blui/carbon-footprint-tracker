@@ -1,16 +1,21 @@
 // src/server.ts
 
 import express, { Request, Response } from "express";
+import cors from "cors"; // Import CORS
 import apiRoutes from "./routes/api";
 import "./db"; // Import MongoDB connection
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json()); // Middleware to parse JSON payloads
-app.use("/api", apiRoutes); // Use API routes
+// Enable CORS
+app.use(cors());
+app.use(express.json()); // Parse JSON payloads
 
-// Root route to check if the server is running
+// Use API routes
+app.use("/api", apiRoutes);
+
+// Root route for API health check
 app.get("/", (req: Request, res: Response) => {
   res.send("Carbon Footprint Tracker API is up and running!");
 });
