@@ -3,78 +3,121 @@
 import React, { useState, useEffect } from "react";
 import OrganizationForm from "./components/OrganizationForm";
 import SystemForm from "./components/SystemForm";
-import OrganizationList from "./components/OrganizationList"; // Import the organization list component
+import OrganizationList from "./components/OrganizationList";
 import API_BASE_URL from "./config";
 
 const App: React.FC = () => {
-  const [orgId, setOrgId] = useState<string | null>(null); // Selected organization ID
+  const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
+  const [organizations, setOrganizations] = useState<any[]>([]); // List of organizations
   const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Selected organization name
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Track selected organization name
 
-  // Function to fetch systems for a specific organization
+  // Fetch all organizations from the backend
+  const fetchOrganizations = () => {
+    fetch(`${API_BASE_URL}/api/organizations`)
+      .then((res) => res.json())
+      .then((data) => setOrganizations(data))
+      .catch((err) => console.error("Error fetching organizations:", err));
+  };
+
+  // Fetch systems for a specific organization
   const fetchSystems = (orgId: string) => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
       .then((res) => res.json())
-      .then((data) => setSystems(data)) // Store the systems in state
-      .catch((err) => console.error("Error fetching systems:", err)); // Handle errors
+      .then((data) => setSystems(data))
+      .catch((err) => console.error("Error fetching systems:", err));
   };
 
-  // useEffect hook to fetch systems when an organization is selected
+  // Fetch organizations on mount
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
+
+  // Fetch systems when an organization is selected
   useEffect(() => {
     if (orgId) {
-      fetchSystems(orgId); // Fetch systems when orgId changes
+      fetchSystems(orgId);
     }
-  }, [orgId]); // Dependency array ensures this runs only when orgId changes
+  }, [orgId]);
 
   // Handle organization creation
   const handleOrganizationCreated = (
     createdOrgId: string,
     createdOrgName: string
   ) => {
-    setOrgId(createdOrgId); // Set the selected organization ID
-    setSelectedOrg(createdOrgName); // Set the selected organization name
-    setSystems([]); // Reset systems list for the new organization
+    setOrgId(createdOrgId);
+    setSelectedOrg(createdOrgName);
+    setSystems([]);
+    fetchOrganizations();
   };
 
   // Handle system addition
   const handleSystemAdded = () => {
+    fetchOrganizations();
     if (orgId) {
-      fetchSystems(orgId); // Refresh systems after a new one is added
+      fetchSystems(orgId);
     }
   };
 
+  // Handle selecting an organization from the sidebar
+  const handleSelectOrganization = (
+    selectedOrgId: string,
+    selectedOrgName: string
+  ) => {
+    setOrgId(selectedOrgId);
+    setSelectedOrg(selectedOrgName);
+    fetchSystems(selectedOrgId);
+  };
+
   return (
-    <div>
-      <h1>Carbon Footprint Tracker</h1>
+    <>
+      {/* Application Header (Full width) */}
+      <header className="app-header">
+        <h1>DataBridge Log Analyzer</h1> {/* Name of the application */}
+      </header>
 
-      {/* Form to create an organization */}
-      <OrganizationForm onOrganizationCreated={handleOrganizationCreated} />
-
-      {/* Conditionally render the system form if an organization is selected */}
-      {orgId && (
-        <div>
-          <h2>Add a System to {selectedOrg}</h2>
-          <SystemForm orgId={orgId} onSystemAdded={handleSystemAdded} />
+      <div className="app-container">
+        {/* Left-side Navigation Pane */}
+        <div className="sidebar">
+          <h2 className="sidebar-title">Organizations</h2>
+          <OrganizationList
+            organizations={organizations}
+            onSelect={handleSelectOrganization}
+          />
+          <div style={{ marginTop: "20px" }}>
+            <OrganizationForm
+              onOrganizationCreated={handleOrganizationCreated}
+            />
+          </div>
         </div>
-      )}
 
-      {/* Conditionally render the list of systems if any exist for the selected organization */}
-      {systems.length > 0 && (
-        <div>
-          <h2>Systems for {selectedOrg}</h2>
-          <ul>
-            {systems.map((system) => (
-              <li key={system._id}>
-                {system.type}: {system.details}
-              </li>
-            ))}
-          </ul>
+        {/* Main content area */}
+        <div className="main-content">
+          {selectedOrg ? (
+            <>
+              <h2 className="org-title">{selectedOrg}</h2>
+              <SystemForm
+                organizations={organizations}
+                onSystemAdded={handleSystemAdded}
+              />
+              {systems.length > 0 ? (
+                <ul className="system-list">
+                  {systems.map((system) => (
+                    <li key={system._id} className="system-item">
+                      <strong>{system.type}</strong>: {system.details}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No systems available for this organization.</p>
+              )}
+            </>
+          ) : (
+            <p>Please select an organization from the sidebar.</p>
+          )}
         </div>
-      )}
-
-      {/* Render all organizations and their systems */}
-      <OrganizationList />
-    </div>
+      </div>
+    </>
   );
 };
 

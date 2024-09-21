@@ -3,47 +3,53 @@
 import React, { useState } from "react";
 import API_BASE_URL from "../config";
 
-// Define props for the SystemForm component
+// Define the props for the SystemForm component
 interface SystemFormProps {
-  orgId: string; // The organization ID to which the system will be added
-  onSystemAdded: () => void; // Callback prop to notify the parent component when a system is added
+  organizations: { _id: string; name: string }[]; // Array of organizations
+  onSystemAdded: () => void; // Callback for notifying the parent component
 }
 
-// Main functional component for adding a system
-const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
-  const [type, setType] = useState<string>(""); // State to store the system type
-  const [details, setDetails] = useState<string>(""); // State to store system details
-  const [error, setError] = useState<string | null>(null); // State to store error messages
+const SystemForm: React.FC<SystemFormProps> = ({
+  organizations,
+  onSystemAdded,
+}) => {
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null); // Track selected organization ID
+  const [type, setType] = useState<string>(""); // System type
+  const [details, setDetails] = useState<string>(""); // System details
+  const [error, setError] = useState<string | null>(null); // Error state
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-    setError(null); // Reset error state
+    e.preventDefault(); // Prevent default form submission
+    setError(null); // Clear previous errors
+
+    // Ensure an organization is selected
+    if (!selectedOrgId) {
+      setError("Please select an organization.");
+      return;
+    }
 
     try {
-      // Send a POST request to add a system to the specified organization
+      // Send POST request to add a system to the selected organization
       const response = await fetch(
-        `${API_BASE_URL}/api/organizations/${orgId}/systems`,
+        `${API_BASE_URL}/api/organizations/${selectedOrgId}/systems`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" }, // Set content type to JSON
-          body: JSON.stringify({ type, details }), // Send the system data in the request body
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, details }),
         }
       );
 
-      // If the response is not OK, throw an error
       if (!response.ok) {
         throw new Error("Failed to add system");
       }
 
-      // Reset form fields after successful submission
+      // Clear form fields after successful submission
       setType("");
       setDetails("");
 
-      // Notify parent component that a system has been added successfully
-      onSystemAdded();
+      onSystemAdded(); // Notify parent component to refresh system list
     } catch (err: unknown) {
-      // Handle any errors and display an error message
       setError(`Error adding system: ${(err as Error).message}`);
     }
   };
@@ -51,21 +57,38 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Add System</h2>
-      {/* Input for system type */}
+
+      {/* Dropdown to select an organization */}
+      <select
+        value={selectedOrgId || ""}
+        onChange={(e) => setSelectedOrgId(e.target.value)}
+        required
+      >
+        <option value="">Select Organization</option>
+        {organizations.map((org) => (
+          <option key={org._id} value={org._id}>
+            {org.name}
+          </option>
+        ))}
+      </select>
+
+      {/* Input field for system type */}
       <input
         type="text"
         value={type}
-        onChange={(e) => setType(e.target.value)} // Update state as user types
+        onChange={(e) => setType(e.target.value)}
         placeholder="System Type (e.g., Supply Chain, Vehicles)"
-        required // Make input required
+        required
       />
+
       {/* Textarea for system details */}
       <textarea
         value={details}
-        onChange={(e) => setDetails(e.target.value)} // Update state as user types
+        onChange={(e) => setDetails(e.target.value)}
         placeholder="System Details"
-        required // Make textarea required
+        required
       />
+
       {/* Submit button */}
       <button type="submit">Add System</button>
 

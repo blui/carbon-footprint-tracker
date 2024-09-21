@@ -1,60 +1,144 @@
-/* client/src/index.css */
+/* Base styles */
+:root {
+  --primary-color: #0078d4;
+  --secondary-color: #ffffff;
+  --accent-color: #323130;
+  --hover-color: #005a9e;
+  --border-radius: 8px;
+  --font-family: "Segoe UI", "Roboto", "Open Sans", sans-serif;
+}
 
-/* General body styling */
 body {
-  margin: 0; /* Remove default margin */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif; /* Use a system font stack for better performance */
-  -webkit-font-smoothing: antialiased; /* Smooths fonts on macOS */
-  -moz-osx-font-smoothing: grayscale; /* Smooths fonts on Firefox macOS */
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: #f4f4f4;
+  color: var(--accent-color);
 }
 
-/* Styling for code elements */
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace; /* Use a monospace font for code elements */
+/* App header styling (Full width, at the top) */
+.app-header {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  text-align: center;
+  padding: 20px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Styling for the organization grid and cards */
-
-/* Grid layout for displaying organizations */
-.organization-grid {
-  display: grid; /* Use CSS Grid layout */
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(250px, 1fr)
-  ); /* Responsive grid with auto-fill; grid items will fill columns of at least 250px */
-  gap: 20px; /* Space between grid items */
+.app-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
 }
 
-/* Card styling for each organization */
-.organization-card {
-  background-color: #f8f9fa; /* Light background for the card */
-  padding: 20px; /* Padding inside the card */
-  border-radius: 10px; /* Rounded corners for a modern look */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for a raised effect */
+/* Flexbox layout for app container (excluding the header) */
+.app-container {
+  display: flex;
+  height: calc(100vh - 80px); /* Adjust for header height */
+  background-color: #f4f4f4;
 }
 
-/* Styling for the organization name */
-.organization-card h3 {
-  margin-top: 0; /* Remove default top margin */
-  font-size: 1.5rem; /* Set font size */
-  color: #007bff; /* Blue color for organization names */
+/* Sidebar styles */
+.sidebar {
+  background-color: #323130;
+  width: 300px;
+  padding: 20px;
+  border-right: 1px solid #d1d1d1;
 }
 
-/* Remove default padding and list styling for system list inside each organization */
-.organization-card ul {
-  padding-left: 0;
-  list-style-type: none; /* Remove bullet points */
+.sidebar-title {
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+  font-size: 24px;
 }
 
-/* Styling for each system item inside the organization */
-.organization-card ul li {
-  margin-bottom: 10px; /* Space between list items */
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-/* Highlight the type of each system */
-.organization-card ul li strong {
-  color: #343a40; /* Dark color for system type */
+.sidebar ul li {
+  padding: 10px 0;
+  cursor: pointer;
+  color: var(--secondary-color);
+  border-bottom: 1px solid #444;
+  transition: all 0.3s ease;
+}
+
+.sidebar ul li:hover {
+  color: var(--hover-color);
+  background-color: #444;
+  padding-left: 10px;
+}
+
+/* Sidebar input styling */
+.sidebar input {
+  width: 100%;
+  max-width: 260px; /* Constrain the input field to fit within the sidebar width */
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid #d1d1d1;
+  border-radius: var(--border-radius);
+}
+
+.sidebar input:focus {
+  outline: none;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 4px var(--primary-color);
+}
+
+/* Main content styles */
+.main-content {
+  flex-grow: 1;
+  padding: 40px;
+  background-color: var(--secondary-color);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.org-title {
+  color: var(--primary-color);
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.system-list {
+  margin-top: 20px;
+}
+
+.system-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--hover-color);
+  transform: translateY(-2px);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #d1d1d1;
+  border-radius: var(--border-radius);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 4px var(--primary-color);
 }
