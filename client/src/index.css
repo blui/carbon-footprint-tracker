@@ -1,4 +1,4 @@
 /* client/src/index.css */
 
-/* Import Tailwind's styles */
+/* Import Tailwind CSS styles to make use of the utility classes provided by Tailwind */
 @import "./tailwind.css";

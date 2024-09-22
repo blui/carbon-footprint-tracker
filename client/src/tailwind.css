@@ -1,6 +1,10 @@
 /* client/src/tailwind.css */
 
-/* Tailwind base styles */
+/* Import Tailwind's base styles (resets and default styles for elements) */
 @tailwind base;
+
+/* Import Tailwind's component classes (predefined styles for common UI components) */
 @tailwind components;
+
+/* Import Tailwind's utility classes (utility-first approach for styling, such as padding, margins, etc.) */
 @tailwind utilities;

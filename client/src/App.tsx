@@ -1,61 +1,61 @@
 // client/src/App.tsx
 
-import React, { useState, useEffect } from "react";
-import OrganizationForm from "./components/OrganizationForm";
-import SystemForm from "./components/SystemForm";
-import OrganizationList from "./components/OrganizationList";
-import API_BASE_URL from "./config";
+import React, { useState, useEffect } from "react"; // Import React and necessary hooks
+import OrganizationForm from "./components/OrganizationForm"; // Import OrganizationForm component
+import SystemForm from "./components/SystemForm"; // Import SystemForm component
+import OrganizationList from "./components/OrganizationList"; // Import OrganizationList component
+import API_BASE_URL from "./config"; // Import the base API URL
 
 const App: React.FC = () => {
-  const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
-  const [organizations, setOrganizations] = useState<any[]>([]); // List of organizations
-  const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // Track selected organization name
+  const [orgId, setOrgId] = useState<string | null>(null); // State to track the selected organization's ID
+  const [organizations, setOrganizations] = useState<any[]>([]); // State to store a list of organizations
+  const [systems, setSystems] = useState<any[]>([]); // State to store systems for the selected organization
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // State to track the selected organization's name
 
-  // Fetch all organizations from the backend
+  // Function to fetch all organizations from the backend
   const fetchOrganizations = () => {
     fetch(`${API_BASE_URL}/api/organizations`)
-      .then((res) => res.json())
-      .then((data) => setOrganizations(data))
-      .catch((err) => console.error("Error fetching organizations:", err));
+      .then((res) => res.json()) // Parse the JSON response
+      .then((data) => setOrganizations(data)) // Update the organizations state with fetched data
+      .catch((err) => console.error("Error fetching organizations:", err)); // Log errors, if any
   };
 
-  // Fetch systems for a specific organization
+  // Function to fetch all systems for a specific organization
   const fetchSystems = (orgId: string) => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
-      .then((res) => res.json())
-      .then((data) => setSystems(data))
-      .catch((err) => console.error("Error fetching systems:", err));
+      .then((res) => res.json()) // Parse the JSON response
+      .then((data) => setSystems(data)) // Update the systems state with fetched data
+      .catch((err) => console.error("Error fetching systems:", err)); // Log errors, if any
   };
 
-  // Fetch organizations on mount
+  // Fetch all organizations when the component mounts
   useEffect(() => {
     fetchOrganizations();
   }, []);
 
-  // Fetch systems when an organization is selected
+  // Fetch systems for the selected organization when the orgId changes
   useEffect(() => {
     if (orgId) {
       fetchSystems(orgId);
     }
   }, [orgId]);
 
-  // Handle organization creation
+  // Handle the creation of a new organization
   const handleOrganizationCreated = (
     createdOrgId: string,
     createdOrgName: string
   ) => {
-    setOrgId(createdOrgId);
-    setSelectedOrg(createdOrgName);
-    setSystems([]);
-    fetchOrganizations();
+    setOrgId(createdOrgId); // Set the newly created organization's ID
+    setSelectedOrg(createdOrgName); // Set the newly created organization's name
+    setSystems([]); // Clear the systems list
+    fetchOrganizations(); // Refresh the list of organizations
   };
 
-  // Handle system addition
+  // Handle the addition of a new system
   const handleSystemAdded = () => {
-    fetchOrganizations();
+    fetchOrganizations(); // Refresh the list of organizations
     if (orgId) {
-      fetchSystems(orgId);
+      fetchSystems(orgId); // Refresh the systems for the current organization
     }
   };
 
@@ -64,31 +64,31 @@ const App: React.FC = () => {
     selectedOrgId: string,
     selectedOrgName: string
   ) => {
-    setOrgId(selectedOrgId);
-    setSelectedOrg(selectedOrgName);
+    setOrgId(selectedOrgId); // Set the selected organization's ID
+    setSelectedOrg(selectedOrgName); // Set the selected organization's name
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
 
-  // Handle organization update
+  // Handle updating an organization's name
   const handleUpdateOrganization = async (orgId: string) => {
-    const updatedName = prompt("Enter new organization name:");
+    const updatedName = prompt("Enter new organization name:"); // Prompt user for a new organization name
     if (updatedName) {
       await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "PUT",
+        method: "PUT", // Send a PUT request to update the organization
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: updatedName }),
+        body: JSON.stringify({ name: updatedName }), // Send the updated name in the request body
       });
-      fetchOrganizations(); // Refresh the list
+      fetchOrganizations(); // Refresh the list of organizations
     }
   };
 
-  // Handle organization deletion
+  // Handle deleting an organization
   const handleDeleteOrganization = async (orgId: string) => {
     if (window.confirm("Are you sure you want to delete this organization?")) {
       await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "DELETE",
+        method: "DELETE", // Send a DELETE request to delete the organization
       });
-      fetchOrganizations(); // Refresh the list
+      fetchOrganizations(); // Refresh the list of organizations
     }
   };
 
@@ -100,17 +100,16 @@ const App: React.FC = () => {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar for Organization List */}
         <div className="w-72 bg-gray-800 text-white p-6 h-screen">
-          {/* Updated heading text to 'Your Organizations' */}
           <h2 className="text-xl font-semibold mb-4 text-center">
             Your Organizations
           </h2>
           <OrganizationList
-            organizations={organizations}
-            onSelect={handleSelectOrganization}
-            onUpdate={handleUpdateOrganization}
-            onDelete={handleDeleteOrganization}
+            organizations={organizations} // Pass the list of organizations to the OrganizationList component
+            onSelect={handleSelectOrganization} // Pass the select handler
+            onUpdate={handleUpdateOrganization} // Pass the update handler
+            onDelete={handleDeleteOrganization} // Pass the delete handler
           />
           <div className="mt-8">
             <OrganizationForm
@@ -119,7 +118,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Area for Organization Details and System Form */}
         <div className="flex-grow p-10 bg-white shadow-lg">
           {selectedOrg ? (
             <>
