@@ -1,94 +1,156 @@
-// client/src/components/SystemForm.tsx
+import React, { useState } from "react";
+import API_BASE_URL from "../config";
 
-import React, { useState } from "react"; // Import React and the useState hook
-import API_BASE_URL from "../config"; // Import base URL for API requests
+// Define the types of systems available
+const systemTypes = ["Workflow", "Vendor Solution", "Vehicle"];
 
-// Define the props interface for SystemForm
 interface SystemFormProps {
-  orgId: string; // The organization ID to which the system belongs
-  onSystemAdded: () => void; // Callback function when a system is successfully added
+  orgId: string; // The organization ID for which the system is being added
+  onSystemAdded: () => void; // Callback to refresh systems after adding a new one
 }
 
-// SystemForm component - Handles adding new systems to an organization
 const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
-  // State for system type, system details, and error messages
-  const [type, setType] = useState(""); // Store the system type (e.g., "Vehicles", "Supply Chain")
-  const [details, setDetails] = useState(""); // Store additional details about the system
-  const [error, setError] = useState<string | null>(null); // Error state to handle any errors during submission
+  const [selectedType, setSelectedType] = useState(systemTypes[0]); // Track selected system type
+  const [details, setDetails] = useState(""); // General details for the system
+  const [workflowItems, setWorkflowItems] = useState<string[]>([]); // Items for workflows
+  const [vendorName, setVendorName] = useState(""); // Vendor name for vendor solutions
+  const [vehicleInfo, setVehicleInfo] = useState({
+    year: "",
+    make: "",
+    model: "",
+  }); // Vehicle information
+  const [error, setError] = useState<string | null>(null); // Track error message
 
-  // Function to handle form submission
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission behavior (page refresh)
-    setError(null); // Clear any previous error state before submitting
+    e.preventDefault();
+    setError(null);
 
+    // Prepare the details based on the system type
+    let systemDetails;
+    if (selectedType === "Workflow") {
+      systemDetails = { items: workflowItems }; // Workflow type details
+    } else if (selectedType === "Vendor Solution") {
+      systemDetails = { vendor: vendorName }; // Vendor solution details
+    } else if (selectedType === "Vehicle") {
+      systemDetails = vehicleInfo; // Vehicle details (year, make, model)
+    }
+
+    // Make the API request to add the system
     try {
-      // Send POST request to add a system to the organization
       const response = await fetch(
         `${API_BASE_URL}/api/organizations/${orgId}/systems`,
         {
-          method: "POST", // Define the method as POST to send data
-          headers: { "Content-Type": "application/json" }, // Specify JSON content
-          body: JSON.stringify({ type, details }), // Convert system type and details to JSON
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: selectedType,
+            details: systemDetails, // Send the appropriate system details
+          }),
         }
       );
 
       if (!response.ok) {
-        // If the response status is not ok, throw an error
         throw new Error("Failed to add system");
       }
 
-      // Clear the form inputs upon successful system addition
-      setType(""); // Reset system type field
-      setDetails(""); // Reset system details field
-      onSystemAdded(); // Call the callback function to update the parent component
+      // Clear the form fields upon successful submission
+      setDetails("");
+      setWorkflowItems([]);
+      setVendorName("");
+      setVehicleInfo({ year: "", make: "", model: "" });
+      onSystemAdded(); // Refresh systems list after adding a new one
     } catch (err: unknown) {
-      // Set an error message in case the request fails
       setError(`Error adding system: ${(err as Error).message}`);
     }
   };
 
+  // Update the UI to show different fields based on the selected system type
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 p-4 bg-gray-50 rounded-lg shadow-lg" // Styling for the form container
+      className="p-6 bg-gray-100 rounded-lg shadow-md"
     >
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Add System</h2>{" "}
-      {/* Form heading */}
-      {/* Input field for system type */}
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2" htmlFor="systemType">
-          System Type
-        </label>
-        <input
-          type="text"
-          id="systemType"
-          value={type} // Bind input value to type state
-          onChange={(e) => setType(e.target.value)} // Update state on change
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter system type (e.g., Vehicles, Supply Chain)" // Input placeholder
-          required // Mark the input as required
-        />
-      </div>
-      {/* Textarea for system details */}
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2" htmlFor="systemDetails">
-          System Details
-        </label>
-        <textarea
-          id="systemDetails"
-          value={details} // Bind textarea value to details state
-          onChange={(e) => setDetails(e.target.value)} // Update state on change
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter details for the system" // Textarea placeholder
-          required // Mark the textarea as required
-        />
-      </div>
-      {/* Display an error message if any */}
+      <h2 className="text-xl font-semibold mb-4">Add System</h2>
+
+      <label className="block mb-2">System Type</label>
+      <select
+        value={selectedType}
+        onChange={(e) => setSelectedType(e.target.value)}
+        className="w-full mb-4 p-2 border rounded"
+      >
+        {systemTypes.map((type) => (
+          <option key={type} value={type}>
+            {type}
+          </option>
+        ))}
+      </select>
+
+      {/* Show fields based on selected system type */}
+      {selectedType === "Workflow" && (
+        <div className="mb-4">
+          <label className="block mb-2">Workflow Items</label>
+          {/* Workflow form logic here, e.g., text inputs for each item */}
+          <textarea
+            value={workflowItems.join(", ")}
+            onChange={(e) => setWorkflowItems(e.target.value.split(", "))}
+            className="w-full p-2 border rounded"
+            placeholder="Enter workflow items separated by commas"
+          />
+        </div>
+      )}
+
+      {selectedType === "Vendor Solution" && (
+        <div className="mb-4">
+          <label className="block mb-2">Vendor Name</label>
+          <input
+            type="text"
+            value={vendorName}
+            onChange={(e) => setVendorName(e.target.value)}
+            className="w-full p-2 border rounded"
+            placeholder="Enter vendor name"
+          />
+        </div>
+      )}
+
+      {selectedType === "Vehicle" && (
+        <div className="mb-4">
+          <label className="block mb-2">Vehicle Information</label>
+          <input
+            type="text"
+            value={vehicleInfo.year}
+            onChange={(e) =>
+              setVehicleInfo({ ...vehicleInfo, year: e.target.value })
+            }
+            className="w-full p-2 border rounded mb-2"
+            placeholder="Year"
+          />
+          <input
+            type="text"
+            value={vehicleInfo.make}
+            onChange={(e) =>
+              setVehicleInfo({ ...vehicleInfo, make: e.target.value })
+            }
+            className="w-full p-2 border rounded mb-2"
+            placeholder="Make"
+          />
+          <input
+            type="text"
+            value={vehicleInfo.model}
+            onChange={(e) =>
+              setVehicleInfo({ ...vehicleInfo, model: e.target.value })
+            }
+            className="w-full p-2 border rounded"
+            placeholder="Model"
+          />
+        </div>
+      )}
+
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      {/* Submit button for adding the system */}
+
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        className="w-full bg-blue-600 text-white p-2 rounded-lg"
       >
         Add System
       </button>

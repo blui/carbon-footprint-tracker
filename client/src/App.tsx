@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import OrganizationForm from "./components/OrganizationForm";
 import SystemForm from "./components/SystemForm";
 import SystemTable from "./components/SystemTable"; // Import SystemTable component
-import API_BASE_URL from "./config";
+import API_BASE_URL from "./config"; // Import API base URL
 
 const App = () => {
   const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
@@ -41,40 +41,10 @@ const App = () => {
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
 
-  // Handle updating an organization
-  const handleUpdateOrganization = async (orgId: string) => {
-    const updatedName = prompt("Enter new organization name:");
-    if (updatedName) {
-      await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: updatedName }),
-      });
-      fetchOrganizations(); // Refresh the organization list after update
-    }
-  };
-
-  // Handle deleting an organization
-  const handleDeleteOrganization = async (orgId: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this organization? This will delete all associated systems as well."
-      )
-    ) {
-      await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "DELETE",
-      });
-      fetchOrganizations(); // Refresh the organization list after deletion
-      setOrgId(null); // Clear selected organization after deletion
-      setSelectedOrgName(null); // Clear selected organization name after deletion
-      setSystems([]); // Clear systems list after organization is deleted
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Application Header */}
-      <header className="bg-blue-600 text-white text-center py-6 shadow-lg">
+      <header className="bg-blue-600 text-white text-center py-6 shadow-lg mb-6">
         <h1 className="text-3xl font-bold">Carbon Footprint Tracker</h1>
       </header>
 
@@ -83,17 +53,19 @@ const App = () => {
         <div className="w-72 bg-gray-800 text-white p-6 h-screen">
           <h2 className="text-xl font-semibold mb-6">Your Organizations</h2>
 
-          {/* Pass handlers for selecting, updating, and deleting organizations */}
-          <ul>
+          {/* List of organizations */}
+          <ul className="space-y-2">
+            {" "}
+            {/* Adds vertical spacing between organization items */}
             {organizations.map((org) => (
               <li
                 key={org._id}
                 onClick={() => handleSelectOrganization(org._id, org.name)}
-                className={`cursor-pointer py-2 px-4 bg-gray-700 rounded-lg mb-2 ${
+                className={`cursor-pointer py-2 px-4 bg-gray-700 rounded-lg ${
                   org._id === orgId
                     ? "bg-blue-500 text-white"
                     : "bg-gray-700 text-gray-300"
-                }`} // Highlight the selected organization
+                }`}
               >
                 {org.name}
               </li>
@@ -110,37 +82,31 @@ const App = () => {
         <div className="flex-grow p-10 bg-white shadow-lg">
           {selectedOrgName ? (
             <>
-              {/* Title Above Left and Right Sections */}
-              <h2 className="text-3xl font-semibold text-center mb-8">
-                {selectedOrgName} Overview
+              <h2 className="text-2xl font-semibold text-gray-700 mb-6">
+                Systems for {selectedOrgName}
               </h2>
 
-              {/* Grid for Left (Stats) and Right (System Form) */}
-              <div className="grid grid-cols-2 gap-8">
-                {/* Left Side: Organization Statistics */}
-                <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-                  <h3 className="text-2xl font-semibold text-gray-700 mb-4">
-                    {selectedOrgName} Statistics
+              <div className="flex mb-8">
+                {/* Left Side: Statistics Section */}
+                <div className="w-1/2 pr-4">
+                  <h3 className="text-xl font-semibold mb-2">
+                    Organization Statistics
                   </h3>
-                  <ul className="space-y-4">
-                    <li className="text-lg font-medium text-gray-600">
-                      Emissions:{" "}
-                      <span className="text-gray-800">1,500 kg CO₂</span>
-                    </li>
-                    <li className="text-lg font-medium text-gray-600">
-                      Efficiency: <span className="text-gray-800">85%</span>
-                    </li>
-                    <li className="text-lg font-medium text-gray-600">
-                      Setup Grade: <span className="text-gray-800">B+</span>
-                    </li>
-                  </ul>
+                  <div className="bg-gray-100 p-4 rounded-lg shadow-md space-y-4">
+                    <p>
+                      <strong>Calculated Emissions:</strong> 1200 kg CO2
+                    </p>
+                    <p>
+                      <strong>System Efficiency:</strong> 85%
+                    </p>
+                    <p>
+                      <strong>Organizational Grade:</strong> B+
+                    </p>
+                  </div>
                 </div>
 
-                {/* Right Side: System Form */}
-                <div>
-                  <h3 className="text-2xl font-semibold text-gray-700 mb-4">
-                    Add System to {selectedOrgName}
-                  </h3>
+                {/* Right Side: System Form Section */}
+                <div className="w-1/2">
                   <SystemForm
                     orgId={orgId!}
                     onSystemAdded={() => fetchSystems(orgId!)}
@@ -148,21 +114,41 @@ const App = () => {
                 </div>
               </div>
 
-              {/* Bottom Section: System Table */}
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-4">Systems</h3>
-                {systems.length > 0 ? (
+              {/* Systems Table displayed below both sections */}
+              {systems.length > 0 ? (
+                <div className="mt-8">
                   <SystemTable
                     systems={systems}
-                    orgId={orgId!}
-                    onSystemUpdated={() => fetchSystems(orgId!)}
+                    onDeleteSystem={(systemId) => {
+                      fetch(
+                        `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
+                        {
+                          method: "DELETE",
+                        }
+                      ).then(() => fetchSystems(orgId!)); // Refetch systems after deletion
+                    }}
+                    onEditSystem={(systemId) => {
+                      const updatedDetails = prompt(
+                        "Enter new system details:"
+                      );
+                      if (updatedDetails) {
+                        fetch(
+                          `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
+                          {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ details: updatedDetails }),
+                          }
+                        ).then(() => fetchSystems(orgId!)); // Refetch systems after edit
+                      }
+                    }}
                   />
-                ) : (
-                  <p className="text-gray-500">
-                    No systems available for this organization.
-                  </p>
-                )}
-              </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 mt-8">
+                  No systems available for this organization.
+                </p>
+              )}
             </>
           ) : (
             <p className="text-gray-500">

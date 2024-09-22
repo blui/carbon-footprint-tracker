@@ -1,130 +1,85 @@
-// client/src/components/SystemTable.tsx
+import React from "react";
 
-import React, { useState } from "react";
-import API_BASE_URL from "../config"; // Import base URL for API requests
-
-// Define the props for the SystemTable component
-interface SystemTableProps {
-  systems: any[]; // List of systems passed as a prop
-  orgId: string; // Organization ID
-  onSystemUpdated: () => void; // Callback to refresh systems after an update
+// Define the System interface to represent a system object with optional fields for various types
+interface System {
+  _id: string;
+  type: string; // The type of system (workflow, vendorSolution, vehicle)
+  workflowItems?: string[]; // Array of workflow items (if the system is a workflow)
+  vendorType?: string; // Vendor type (if the system is a vendor solution)
+  vendorName?: string; // Vendor name (if the system is a vendor solution)
+  year?: number; // Year of the vehicle (if the system is a vehicle)
+  make?: string; // Make of the vehicle (if the system is a vehicle)
+  model?: string; // Model of the vehicle (if the system is a vehicle)
 }
 
+// Props for the SystemTable component, which includes systems, delete, and edit handlers
+interface SystemTableProps {
+  systems: System[]; // Array of systems to be displayed in the table
+  onDeleteSystem: (systemId: string) => void; // Callback function for deleting a system
+  onEditSystem: (systemId: string) => void; // Callback function for editing a system
+}
+
+// Main component for displaying the systems in a table format
 const SystemTable: React.FC<SystemTableProps> = ({
   systems,
-  orgId,
-  onSystemUpdated,
+  onDeleteSystem,
+  onEditSystem,
 }) => {
-  const [editMode, setEditMode] = useState<string | null>(null); // Track system being edited
-  const [type, setType] = useState(""); // Track edited type
-  const [details, setDetails] = useState(""); // Track edited details
-
-  // Function to handle system update
-  const handleUpdateSystem = async (systemId: string) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, details }), // Send updated type and details
-        }
-      );
-      if (!response.ok) throw new Error("Failed to update system");
-
-      onSystemUpdated(); // Refresh systems list
-      setEditMode(null); // Exit edit mode
-    } catch (err) {
-      console.error(`Error updating system: ${(err as Error).message}`);
-    }
-  };
-
-  // Function to handle system deletion
-  const handleDeleteSystem = async (systemId: string) => {
-    if (window.confirm("Are you sure you want to delete this system?")) {
-      try {
-        await fetch(
-          `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
-          {
-            method: "DELETE",
-          }
-        );
-        onSystemUpdated(); // Refresh systems list
-      } catch (err) {
-        console.error(`Error deleting system: ${(err as Error).message}`);
-      }
-    }
-  };
-
   return (
-    <table className="min-w-full bg-white border border-gray-300 mt-4">
+    <table className="min-w-full table-auto bg-white shadow-lg">
       <thead>
         <tr>
-          <th className="py-2 px-4 border-b">Type</th>
-          <th className="py-2 px-4 border-b">Details</th>
-          <th className="py-2 px-4 border-b">Actions</th>
+          <th className="px-4 py-2">Type</th> {/* Column for system type */}
+          <th className="px-4 py-2">Details</th>{" "}
+          {/* Column for system details */}
+          <th className="px-4 py-2">Actions</th>{" "}
+          {/* Column for action buttons (Edit/Delete) */}
         </tr>
       </thead>
       <tbody>
         {systems.map((system) => (
-          <tr key={system._id} className="text-center">
-            {editMode === system._id ? (
-              <>
-                <td className="py-2 px-4 border-b">
-                  <input
-                    type="text"
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-lg"
-                  />
-                </td>
-                <td className="py-2 px-4 border-b">
-                  <input
-                    type="text"
-                    value={details}
-                    onChange={(e) => setDetails(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-lg"
-                  />
-                </td>
-                <td className="py-2 px-4 border-b">
-                  <button
-                    onClick={() => handleUpdateSystem(system._id)}
-                    className="bg-blue-600 text-white py-1 px-3 rounded-lg mr-2"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditMode(null)}
-                    className="bg-gray-400 text-white py-1 px-3 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                </td>
-              </>
-            ) : (
-              <>
-                <td className="py-2 px-4 border-b">{system.type}</td>
-                <td className="py-2 px-4 border-b">{system.details}</td>
-                <td className="py-2 px-4 border-b">
-                  <button
-                    onClick={() => {
-                      setEditMode(system._id);
-                      setType(system.type);
-                      setDetails(system.details);
-                    }}
-                    className="text-blue-500 mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSystem(system._id)}
-                    className="text-red-500"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </>
-            )}
+          <tr key={system._id}>
+            <td className="border px-4 py-2">{system.type}</td>{" "}
+            {/* Display system type */}
+            <td className="border px-4 py-2">
+              {/* Conditionally display the correct details based on the system type */}
+              {system.type === "workflow" && (
+                <ul>
+                  {system.workflowItems?.map((item, index) => (
+                    <li key={index}>{item}</li> // Display workflow items if it's a workflow system
+                  ))}
+                </ul>
+              )}
+              {system.type === "vendorSolution" && (
+                <>
+                  <p>Vendor Type: {system.vendorType}</p>
+                  <p>Vendor Name: {system.vendorName}</p>
+                </>
+              )}
+              {system.type === "vehicle" && (
+                <>
+                  <p>Year: {system.year}</p>
+                  <p>Make: {system.make}</p>
+                  <p>Model: {system.model}</p>
+                </>
+              )}
+            </td>
+            <td className="border px-4 py-2">
+              {/* Edit button */}
+              <button
+                onClick={() => onEditSystem(system._id)}
+                className="bg-yellow-500 text-white px-4 py-1 rounded mr-2 hover:bg-yellow-600"
+              >
+                Edit
+              </button>
+              {/* Delete button */}
+              <button
+                onClick={() => onDeleteSystem(system._id)}
+                className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </td>
           </tr>
         ))}
       </tbody>
