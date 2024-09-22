@@ -13,18 +13,26 @@ const App = () => {
 
   // Function to fetch organizations from the backend API
   const fetchOrganizations = () => {
+    console.log("Fetching organizations...");
     fetch(`${API_BASE_URL}/api/organizations`)
       .then((res) => res.json()) // Parse the response to JSON
-      .then((data) => setOrganizations(data)) // Set organizations in state
+      .then((data) => {
+        console.log("Fetched organizations:", data); // Log fetched organizations
+        setOrganizations(data); // Set organizations in state
+      })
       .catch((err) => console.error("Error fetching organizations:", err)); // Handle errors
   };
 
   // Function to fetch systems for a selected organization
   const fetchSystems = (orgId: string) => {
+    console.log(`Fetching systems for organization ID: ${orgId}...`);
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
-      .then((res) => res.json()) // Parse the response to JSON
-      .then((data) => setSystems(data)) // Set systems in state
-      .catch((err) => console.error("Error fetching systems:", err)); // Handle errors
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Systems fetched from backend:", data); // Log systems data
+        setSystems(data);
+      })
+      .catch((err) => console.error("Error fetching systems:", err));
   };
 
   // Fetch organizations when the component is mounted
@@ -37,6 +45,9 @@ const App = () => {
     selectedOrgId: string,
     selectedOrgName: string
   ) => {
+    console.log(
+      `Selected organization ID: ${selectedOrgId}, Name: ${selectedOrgName}`
+    ); // Debugging: log selected organization details
     setOrgId(selectedOrgId); // Set the selected organization's ID
     setSelectedOrgName(selectedOrgName); // Set the selected organization's name
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
@@ -109,7 +120,10 @@ const App = () => {
                 <div className="w-1/2">
                   <SystemForm
                     orgId={orgId!} // Pass the selected organization ID to SystemForm
-                    onSystemAdded={() => fetchSystems(orgId!)} // Refresh systems list after adding a system
+                    onSystemAdded={() => {
+                      console.log("System added, refetching systems..."); // Debugging: log when a system is added
+                      fetchSystems(orgId!); // Refresh systems list after adding a system
+                    }}
                   />
                 </div>
               </div>
@@ -121,12 +135,16 @@ const App = () => {
                     systems={systems}
                     // Handle deleting a system
                     onDeleteSystem={(systemId) => {
+                      console.log(`Deleting system with ID: ${systemId}`); // Debugging: log the system being deleted
                       fetch(
                         `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
                         {
                           method: "DELETE",
                         }
-                      ).then(() => fetchSystems(orgId!)); // Refetch systems after deletion
+                      ).then(() => {
+                        console.log("System deleted, refetching systems..."); // Debugging: log after deletion
+                        fetchSystems(orgId!); // Refetch systems after deletion
+                      });
                     }}
                     // Handle editing a system
                     onEditSystem={(systemId) => {
@@ -134,6 +152,7 @@ const App = () => {
                         "Enter new system details:"
                       );
                       if (updatedDetails) {
+                        console.log(`Editing system with ID: ${systemId}`); // Debugging: log the system being edited
                         fetch(
                           `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
                           {
@@ -141,7 +160,10 @@ const App = () => {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ details: updatedDetails }), // Update system details
                           }
-                        ).then(() => fetchSystems(orgId!)); // Refetch systems after edit
+                        ).then(() => {
+                          console.log("System edited, refetching systems..."); // Debugging: log after edit
+                          fetchSystems(orgId!); // Refetch systems after edit
+                        });
                       }
                     }}
                   />

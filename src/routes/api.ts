@@ -78,51 +78,80 @@ router.post(
   "/organizations/:orgId/systems",
   async (req: Request, res: Response) => {
     try {
-      const { orgId } = req.params; // Extract organization ID from URL params
+      const { orgId } = req.params;
       const { type, workflowItems, vendorType, vendorName, year, make, model } =
-        req.body; // Extract system details
+        req.body;
 
-      const organization = await Organization.findById(orgId); // Find the organization
-      if (!organization)
-        return res.status(404).json({ error: "Organization not found" }); // If organization not found
+      const organization = await Organization.findById(orgId);
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
 
-      let systemData: any = { type, organization: orgId }; // Prepare base system data
+      // Log the incoming request data for debugging
+      console.log("Request data:", req.body);
 
-      // Check the type of system and add relevant data
+      // Prepare systemData based on the type
+      let systemData: any = { type, organization: orgId };
+
       if (type === "workflow") {
-        systemData.workflowItems = workflowItems;
+        if (workflowItems && Array.isArray(workflowItems)) {
+          systemData.workflowItems = workflowItems;
+        } else {
+          return res
+            .status(400)
+            .json({ error: "Invalid or missing workflow items" });
+        }
       } else if (type === "vendorSolution") {
         systemData.vendorType = vendorType;
         systemData.vendorName = vendorName;
       } else if (type === "vehicle") {
+        // Check for missing vehicle details and log them
+        console.log("Vehicle details:", { year, make, model });
+
+        if (!year || !make || !model) {
+          return res
+            .status(400)
+            .json({ error: "Missing vehicle details: year, make, or model" });
+        }
+
+        // Add vehicle details to systemData
         systemData.year = year;
         systemData.make = make;
         systemData.model = model;
       }
 
-      const newSystem = new System(systemData); // Create a new system instance
-      await newSystem.save(); // Save the system to the database
+      // Create and save the system
+      const newSystem = new System(systemData);
+      await newSystem.save();
 
-      organization.systems.push(newSystem._id); // Add system to organization's systems array
-      await organization.save(); // Save the updated organization
+      // Add the system to the organization
+      organization.systems.push(newSystem._id);
+      await organization.save();
 
-      res.status(201).json(newSystem); // Respond with the newly created system
-    } catch (error) {
-      res.status(500).json({ error: "Error adding system" }); // Error handling
+      res.status(201).json(newSystem);
+    } catch (error: any) {
+      console.error("Error adding system:", error);
+      res
+        .status(500)
+        .json({ error: "Error adding system", details: error.message });
     }
   }
 );
 
-// Route to get all systems for a specific organization
+// Route to fetch all systems for a given organization
 router.get(
   "/organizations/:orgId/systems",
   async (req: Request, res: Response) => {
     try {
-      const { orgId } = req.params; // Extract organization ID from URL params
-      const systems = await System.find({ organization: orgId }); // Find all systems related to the organization
-      res.status(200).json(systems); // Respond with the systems
+      const { orgId } = req.params;
+      const systems = await System.find({ organization: orgId });
+
+      // Log the fetched systems to verify what the backend is returning
+      console.log("Systems fetched from the database:", systems);
+
+      res.status(200).json(systems);
     } catch (error) {
-      res.status(500).json({ error: "Error fetching systems" }); // Error handling
+      res.status(500).json({ error: "Error fetching systems" });
     }
   }
 );
