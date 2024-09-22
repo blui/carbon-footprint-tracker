@@ -1,74 +1,83 @@
 // client/src/components/OrganizationForm.tsx
 
-import React, { useState } from "react"; // Import React and the useState hook
-import API_BASE_URL from "../config"; // Import the base URL for making API calls
+import React, { useState } from "react"; // Import React and useState for state management
+import API_BASE_URL from "../config"; // Import the base URL for API requests
 
-// Define props expected by the OrganizationForm component
+// Define the props interface to specify the structure for the OrganizationForm component
 interface OrganizationFormProps {
-  // Function prop that gets called when a new organization is created
-  onOrganizationCreated: (orgId: string, orgName: string) => void;
+  onOrganizationCreated: (orgId: string, orgName: string) => void; // A callback prop for when a new organization is created
 }
 
-// OrganizationForm component - allows users to create new organizations
+// The main OrganizationForm functional component
 const OrganizationForm: React.FC<OrganizationFormProps> = ({
   onOrganizationCreated,
 }) => {
-  const [name, setName] = useState(""); // State to store the organization name entered by the user
-  const [error, setError] = useState<string | null>(null); // State to store any error messages
+  // State to store the organization's name entered by the user
+  const [name, setName] = useState(""); // Initial state is an empty string
+
+  // State to track errors, initially set to null (no errors)
+  const [error, setError] = useState<string | null>(null);
 
   // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission behavior (page refresh)
-    setError(null); // Clear previous error state before new submission
+    e.preventDefault(); // Prevent default form behavior (page reload)
+    setError(null); // Reset the error state before new submission
 
     try {
-      // Make a POST request to create a new organization
+      // Send a POST request to the backend to create a new organization
       const response = await fetch(`${API_BASE_URL}/api/organizations`, {
-        method: "POST", // Define the method as POST to send data to the server
-        headers: { "Content-Type": "application/json" }, // Set request headers
-        body: JSON.stringify({ name }), // Convert the name state to JSON for the request body
+        method: "POST",
+        headers: { "Content-Type": "application/json" }, // Specify that the request body is JSON
+        body: JSON.stringify({ name }), // Send the organization name in the request body
       });
 
       if (!response.ok) {
-        // If the response status is not okay, throw an error
+        // If the response status is not ok, throw an error
         throw new Error("Failed to create organization");
       }
 
-      // Parse the response as JSON and extract the new organization's data
+      // Parse the response JSON to retrieve the organization data
       const data = await response.json();
-      // Notify the parent component of the newly created organization
+
+      // Call the parent component's onOrganizationCreated method to notify it of the new organization
       onOrganizationCreated(data._id, data.name);
-      setName(""); // Reset the form's input field after successful submission
+
+      // Clear the input field after successfully creating the organization
+      setName("");
     } catch (err: unknown) {
-      // Handle any errors by setting an error message
+      // If there's an error, set the error state to display the error message
       setError(`Error creating organization: ${(err as Error).message}`);
     }
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
-      className="mt-4 p-4 bg-gray-50 rounded-lg shadow-lg"
+      onSubmit={handleSubmit} // Attach the form submit handler
+      className="mt-4 p-4 bg-neutral rounded-lg shadow-lg" // Apply Tailwind CSS styles for consistent look
     >
-      {/* The input field for entering the organization name */}
       <div className="mb-4">
+        {/* Input field for organization name */}
         <input
           type="text"
-          value={name} // Bind the input value to the name state
-          onChange={(e) => setName(e.target.value)} // Update the state as the user types
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter organization name" // Placeholder serves as a label within the input field
-          required // Make the input field required
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            console.log("Current Input Value: ", e.target.value); // Debugging to ensure it's working
+          }}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+          style={{ color: "black", backgroundColor: "white" }} // Add inline styles for debugging
+          placeholder="Enter organization name"
+          required
         />
       </div>
 
-      {/* Display any error message if one exists */}
+      {/* Display error message if an error exists */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
-      {/* Submit button for creating an organization */}
+      {/* Button to submit the form and create a new organization */}
       <button
-        type="submit"
-        className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        type="submit" // Set the button type to submit the form
+        className="w-full bg-primary text-white py-2 rounded-lg hover:bg-accent focus:outline-none focus:ring-2 focus:ring-accent" // Tailwind CSS styles for the button
       >
         Create Organization
       </button>

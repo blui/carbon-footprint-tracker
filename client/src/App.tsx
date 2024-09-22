@@ -1,94 +1,73 @@
-// client/src/App.tsx
+import React, { useState, useEffect } from "react";
+import OrganizationForm from "./components/OrganizationForm";
+import SystemForm from "./components/SystemForm";
+import SystemTable from "./components/SystemTable"; // Import SystemTable component
+import API_BASE_URL from "./config";
 
-import React, { useState, useEffect } from "react"; // Import React and necessary hooks
-import OrganizationForm from "./components/OrganizationForm"; // Import OrganizationForm component
-import SystemForm from "./components/SystemForm"; // Import SystemForm component
-import OrganizationList from "./components/OrganizationList"; // Import OrganizationList component
-import API_BASE_URL from "./config"; // Import the base API URL
+const App = () => {
+  const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
+  const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
+  const [organizations, setOrganizations] = useState<any[]>([]); // List of organizations
+  const [selectedOrgName, setSelectedOrgName] = useState<string | null>(null); // Track the selected organization name
 
-const App: React.FC = () => {
-  const [orgId, setOrgId] = useState<string | null>(null); // State to track the selected organization's ID
-  const [organizations, setOrganizations] = useState<any[]>([]); // State to store a list of organizations
-  const [systems, setSystems] = useState<any[]>([]); // State to store systems for the selected organization
-  const [selectedOrg, setSelectedOrg] = useState<string | null>(null); // State to track the selected organization's name
-
-  // Function to fetch all organizations from the backend
+  // Function to fetch organizations from the backend
   const fetchOrganizations = () => {
     fetch(`${API_BASE_URL}/api/organizations`)
-      .then((res) => res.json()) // Parse the JSON response
-      .then((data) => setOrganizations(data)) // Update the organizations state with fetched data
-      .catch((err) => console.error("Error fetching organizations:", err)); // Log errors, if any
+      .then((res) => res.json())
+      .then((data) => setOrganizations(data))
+      .catch((err) => console.error("Error fetching organizations:", err));
   };
 
-  // Function to fetch all systems for a specific organization
+  // Fetch systems for a selected organization
   const fetchSystems = (orgId: string) => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
-      .then((res) => res.json()) // Parse the JSON response
-      .then((data) => setSystems(data)) // Update the systems state with fetched data
-      .catch((err) => console.error("Error fetching systems:", err)); // Log errors, if any
+      .then((res) => res.json())
+      .then((data) => setSystems(data))
+      .catch((err) => console.error("Error fetching systems:", err));
   };
 
-  // Fetch all organizations when the component mounts
+  // Fetch organizations on initial render
   useEffect(() => {
     fetchOrganizations();
   }, []);
 
-  // Fetch systems for the selected organization when the orgId changes
-  useEffect(() => {
-    if (orgId) {
-      fetchSystems(orgId);
-    }
-  }, [orgId]);
-
-  // Handle the creation of a new organization
-  const handleOrganizationCreated = (
-    createdOrgId: string,
-    createdOrgName: string
-  ) => {
-    setOrgId(createdOrgId); // Set the newly created organization's ID
-    setSelectedOrg(createdOrgName); // Set the newly created organization's name
-    setSystems([]); // Clear the systems list
-    fetchOrganizations(); // Refresh the list of organizations
-  };
-
-  // Handle the addition of a new system
-  const handleSystemAdded = () => {
-    fetchOrganizations(); // Refresh the list of organizations
-    if (orgId) {
-      fetchSystems(orgId); // Refresh the systems for the current organization
-    }
-  };
-
-  // Handle selecting an organization from the sidebar
+  // Handle selecting an organization
   const handleSelectOrganization = (
     selectedOrgId: string,
     selectedOrgName: string
   ) => {
-    setOrgId(selectedOrgId); // Set the selected organization's ID
-    setSelectedOrg(selectedOrgName); // Set the selected organization's name
+    setOrgId(selectedOrgId);
+    setSelectedOrgName(selectedOrgName); // Set the selected organization's name
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
 
-  // Handle updating an organization's name
+  // Handle updating an organization
   const handleUpdateOrganization = async (orgId: string) => {
-    const updatedName = prompt("Enter new organization name:"); // Prompt user for a new organization name
+    const updatedName = prompt("Enter new organization name:");
     if (updatedName) {
       await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "PUT", // Send a PUT request to update the organization
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: updatedName }), // Send the updated name in the request body
+        body: JSON.stringify({ name: updatedName }),
       });
-      fetchOrganizations(); // Refresh the list of organizations
+      fetchOrganizations(); // Refresh the organization list after update
     }
   };
 
   // Handle deleting an organization
   const handleDeleteOrganization = async (orgId: string) => {
-    if (window.confirm("Are you sure you want to delete this organization?")) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this organization? This will delete all associated systems as well."
+      )
+    ) {
       await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
-        method: "DELETE", // Send a DELETE request to delete the organization
+        method: "DELETE",
       });
-      fetchOrganizations(); // Refresh the list of organizations
+      fetchOrganizations(); // Refresh the organization list after deletion
+      setOrgId(null); // Clear selected organization after deletion
+      setSelectedOrgName(null); // Clear selected organization name after deletion
+      setSystems([]); // Clear systems list after organization is deleted
     }
   };
 
@@ -100,53 +79,94 @@ const App: React.FC = () => {
       </header>
 
       <div className="flex">
-        {/* Sidebar for Organization List */}
+        {/* Sidebar for Organizations */}
         <div className="w-72 bg-gray-800 text-white p-6 h-screen">
-          <h2 className="text-xl font-semibold mb-4 text-center">
-            Your Organizations
-          </h2>
-          <OrganizationList
-            organizations={organizations} // Pass the list of organizations to the OrganizationList component
-            onSelect={handleSelectOrganization} // Pass the select handler
-            onUpdate={handleUpdateOrganization} // Pass the update handler
-            onDelete={handleDeleteOrganization} // Pass the delete handler
-          />
+          <h2 className="text-xl font-semibold mb-6">Your Organizations</h2>
+
+          {/* Pass handlers for selecting, updating, and deleting organizations */}
+          <ul>
+            {organizations.map((org) => (
+              <li
+                key={org._id}
+                onClick={() => handleSelectOrganization(org._id, org.name)}
+                className={`cursor-pointer py-2 px-4 bg-gray-700 rounded-lg mb-2 ${
+                  org._id === orgId
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-700 text-gray-300"
+                }`} // Highlight the selected organization
+              >
+                {org.name}
+              </li>
+            ))}
+          </ul>
+
+          {/* Form to add new organization */}
           <div className="mt-8">
-            <OrganizationForm
-              onOrganizationCreated={handleOrganizationCreated}
-            />
+            <OrganizationForm onOrganizationCreated={fetchOrganizations} />
           </div>
         </div>
 
-        {/* Main Content Area for Organization Details and System Form */}
+        {/* Main Content Area */}
         <div className="flex-grow p-10 bg-white shadow-lg">
-          {selectedOrg ? (
+          {selectedOrgName ? (
             <>
-              <h2 className="text-2xl font-semibold text-gray-700 border-b-2 border-blue-600 pb-2">
-                {selectedOrg}
+              {/* Title Above Left and Right Sections */}
+              <h2 className="text-3xl font-semibold text-center mb-8">
+                {selectedOrgName} Overview
               </h2>
-              <SystemForm orgId={orgId!} onSystemAdded={handleSystemAdded} />
-              {systems.length > 0 ? (
-                <ul className="mt-6">
-                  {systems.map((system) => (
-                    <li
-                      key={system._id}
-                      className="py-4 border-b border-gray-300"
-                    >
-                      <strong className="font-semibold">{system.type}</strong>:{" "}
-                      {system.details}
+
+              {/* Grid for Left (Stats) and Right (System Form) */}
+              <div className="grid grid-cols-2 gap-8">
+                {/* Left Side: Organization Statistics */}
+                <div className="bg-gray-50 p-6 rounded-lg shadow-md">
+                  <h3 className="text-2xl font-semibold text-gray-700 mb-4">
+                    {selectedOrgName} Statistics
+                  </h3>
+                  <ul className="space-y-4">
+                    <li className="text-lg font-medium text-gray-600">
+                      Emissions:{" "}
+                      <span className="text-gray-800">1,500 kg CO₂</span>
                     </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 mt-4">
-                  No systems available for this organization.
-                </p>
-              )}
+                    <li className="text-lg font-medium text-gray-600">
+                      Efficiency: <span className="text-gray-800">85%</span>
+                    </li>
+                    <li className="text-lg font-medium text-gray-600">
+                      Setup Grade: <span className="text-gray-800">B+</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Right Side: System Form */}
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-700 mb-4">
+                    Add System to {selectedOrgName}
+                  </h3>
+                  <SystemForm
+                    orgId={orgId!}
+                    onSystemAdded={() => fetchSystems(orgId!)}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Section: System Table */}
+              <div className="mt-10">
+                <h3 className="text-xl font-semibold mb-4">Systems</h3>
+                {systems.length > 0 ? (
+                  <SystemTable
+                    systems={systems}
+                    orgId={orgId!}
+                    onSystemUpdated={() => fetchSystems(orgId!)}
+                  />
+                ) : (
+                  <p className="text-gray-500">
+                    No systems available for this organization.
+                  </p>
+                )}
+              </div>
             </>
           ) : (
             <p className="text-gray-500">
-              Please select an organization from the sidebar.
+              Please select an organization to view its systems.
             </p>
           )}
         </div>

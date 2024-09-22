@@ -6,9 +6,17 @@ module.exports = {
 
   // Extend Tailwind's default theme with custom values (colors, fonts, etc.)
   theme: {
-    extend: {}, // Currently empty, but can be used to add customizations in the future
+    extend: {
+      colors: {
+        primary: "#1e3a8a", // Dark Blue
+        secondary: "#64748b", // Cool Gray
+        accent: "#1d4ed8", // Bright Blue for accents
+        neutral: "#f3f4f6", // Light Gray for backgrounds
+      },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"], // Set Inter as the base sans-serif font
+      },
+    },
   },
-
-  // Add any Tailwind plugins (such as forms, typography) here
   plugins: [],
 };
