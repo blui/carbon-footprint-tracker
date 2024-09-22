@@ -47,11 +47,13 @@ const SystemData: React.FC<SystemDataProps> = ({ systemId }) => {
 
   // Once the data is fetched, display the system data (emissions, efficiency, and recommendations)
   return (
-    <div>
-      <h2>Emissions and Recommendations</h2>
-      <p>Emissions: {data.emissions}</p>
-      <p>Efficiency: {data.efficiency}</p>
-      <p>Recommendations: {data.recommendations}</p>
+    <div className="p-4 bg-gray-100 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4">
+        Emissions and Recommendations
+      </h2>
+      <p className="mb-2">Emissions: {data.emissions}</p>
+      <p className="mb-2">Efficiency: {data.efficiency}</p>
+      <p className="mb-2">Recommendations: {data.recommendations}</p>
     </div>
   );
 };

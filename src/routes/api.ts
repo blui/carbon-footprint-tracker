@@ -1,83 +1,75 @@
-import { Router, Request, Response } from "express"; // Importing Express Router and types
-import Organization from "../models/Organization"; // Import the Organization model
-import System from "../models/System"; // Import the System model
+import { Router, Request, Response } from "express"; // Import Express Router and types
+import Organization from "../models/Organization"; // Import Organization model
+import System from "../models/System"; // Import System model
 
-const router = Router(); // Initialize router for handling API routes
+const router = Router(); // Initialize the Express router
 
 // Route to create a new organization
 router.post("/organizations", async (req: Request, res: Response) => {
   try {
-    const { name } = req.body; // Destructure the 'name' from request body
-    const newOrg = new Organization({ name }); // Create a new organization object
+    const { name } = req.body; // Extract the organization name from the request body
+    const newOrg = new Organization({ name }); // Create a new organization instance
     await newOrg.save(); // Save the organization to the database
-    res.status(201).json(newOrg); // Respond with the newly created organization
+    res.status(201).json(newOrg); // Respond with the created organization
   } catch (error) {
-    res.status(500).json({ error: "Error creating organization" }); // Handle any errors
+    res.status(500).json({ error: "Error creating organization" }); // Error handling
   }
 });
 
-// Route to get all organizations and their systems
+// Route to get all organizations and their associated systems
 router.get("/organizations", async (req: Request, res: Response) => {
   try {
-    // Fetch all organizations and populate their related systems
-    const organizations = await Organization.find().populate("systems");
+    const organizations = await Organization.find().populate("systems"); // Find all organizations and populate systems
     res.status(200).json(organizations); // Respond with the organizations
   } catch (error) {
-    res.status(500).json({ error: "Error fetching organizations" }); // Handle any errors
+    res.status(500).json({ error: "Error fetching organizations" }); // Error handling
   }
 });
 
 // Route to get a specific organization by ID
 router.get("/organizations/:orgId", async (req: Request, res: Response) => {
   try {
-    const { orgId } = req.params; // Destructure the organization ID from URL parameters
-    const organization = await Organization.findById(orgId).populate("systems"); // Find organization by ID
-    if (!organization) {
-      return res.status(404).json({ error: "Organization not found" }); // Handle case where org is not found
-    }
-    res.status(200).json(organization); // Respond with the organization
+    const { orgId } = req.params; // Extract the organization ID from the URL params
+    const organization = await Organization.findById(orgId).populate("systems"); // Find organization by ID and populate systems
+    if (!organization)
+      return res.status(404).json({ error: "Organization not found" }); // If no organization found, return error
+    res.status(200).json(organization); // Respond with the organization data
   } catch (error) {
-    res.status(500).json({ error: "Error fetching organization" }); // Handle any errors
+    res.status(500).json({ error: "Error fetching organization" }); // Error handling
   }
 });
 
-// Route to update an organization
+// Route to update an organization's name
 router.put("/organizations/:orgId", async (req: Request, res: Response) => {
   try {
-    const { orgId } = req.params; // Destructure the organization ID from URL parameters
-    const { name } = req.body; // Destructure the new name from request body
+    const { orgId } = req.params; // Extract organization ID from the URL params
+    const { name } = req.body; // Extract the updated name from the request body
     const updatedOrg = await Organization.findByIdAndUpdate(
       orgId,
-      { name }, // Update the organization's name
+      { name },
       { new: true }
-    );
-    if (!updatedOrg) {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-    res.status(200).json(updatedOrg); // Respond with the updated organization
+    ); // Update organization name
+    if (!updatedOrg)
+      return res.status(404).json({ error: "Organization not found" }); // If organization not found
+    res.status(200).json(updatedOrg); // Respond with the updated organization data
   } catch (error) {
-    res.status(500).json({ error: "Error updating organization" });
+    res.status(500).json({ error: "Error updating organization" }); // Error handling
   }
 });
 
 // Route to delete an organization and its associated systems
 router.delete("/organizations/:orgId", async (req: Request, res: Response) => {
   try {
-    const { orgId } = req.params; // Destructure the organization ID from URL parameters
+    const { orgId } = req.params; // Extract organization ID from the URL params
     const deletedOrg = await Organization.findByIdAndDelete(orgId); // Delete the organization
-
-    // If organization is found and deleted, delete associated systems
-    if (deletedOrg) {
-      await System.deleteMany({ organization: orgId }); // Delete all systems related to the organization
-    } else {
-      return res.status(404).json({ error: "Organization not found" });
-    }
-
+    if (!deletedOrg)
+      return res.status(404).json({ error: "Organization not found" }); // If organization not found
+    await System.deleteMany({ organization: orgId }); // Delete all systems associated with this organization
     res
       .status(200)
-      .json({ message: "Organization and related systems deleted" });
+      .json({ message: "Organization and related systems deleted" }); // Success response
   } catch (error) {
-    res.status(500).json({ error: "Error deleting organization" });
+    res.status(500).json({ error: "Error deleting organization" }); // Error handling
   }
 });
 
@@ -86,44 +78,37 @@ router.post(
   "/organizations/:orgId/systems",
   async (req: Request, res: Response) => {
     try {
-      const { orgId } = req.params; // Destructure the organization ID from URL parameters
+      const { orgId } = req.params; // Extract organization ID from URL params
       const { type, workflowItems, vendorType, vendorName, year, make, model } =
-        req.body; // Destructure fields based on system type
+        req.body; // Extract system details
 
-      const organization = await Organization.findById(orgId); // Find the organization by ID
-      if (!organization) {
-        return res.status(404).json({ error: "Organization not found" });
-      }
+      const organization = await Organization.findById(orgId); // Find the organization
+      if (!organization)
+        return res.status(404).json({ error: "Organization not found" }); // If organization not found
 
-      // Prepare the system data based on the type of system being added
-      let systemData: any = { type, organization: orgId }; // Base data
+      let systemData: any = { type, organization: orgId }; // Prepare base system data
 
-      // If the system type is "workflow", add workflow items
+      // Check the type of system and add relevant data
       if (type === "workflow") {
         systemData.workflowItems = workflowItems;
-      }
-      // If the system type is "vendor solution", add vendor details
-      else if (type === "vendorSolution") {
+      } else if (type === "vendorSolution") {
         systemData.vendorType = vendorType;
         systemData.vendorName = vendorName;
-      }
-      // If the system type is "vehicle", add vehicle details
-      else if (type === "vehicle") {
+      } else if (type === "vehicle") {
         systemData.year = year;
         systemData.make = make;
         systemData.model = model;
       }
 
-      const newSystem = new System(systemData); // Create a new system object
+      const newSystem = new System(systemData); // Create a new system instance
       await newSystem.save(); // Save the system to the database
 
-      // Add the system to the organization's systems array
-      organization.systems.push(newSystem._id);
+      organization.systems.push(newSystem._id); // Add system to organization's systems array
       await organization.save(); // Save the updated organization
 
       res.status(201).json(newSystem); // Respond with the newly created system
     } catch (error) {
-      res.status(500).json({ error: "Error adding system" }); // Handle any errors
+      res.status(500).json({ error: "Error adding system" }); // Error handling
     }
   }
 );
@@ -133,11 +118,11 @@ router.get(
   "/organizations/:orgId/systems",
   async (req: Request, res: Response) => {
     try {
-      const { orgId } = req.params; // Destructure the organization ID from URL parameters
-      const systems = await System.find({ organization: orgId }); // Fetch systems associated with the organization
+      const { orgId } = req.params; // Extract organization ID from URL params
+      const systems = await System.find({ organization: orgId }); // Find all systems related to the organization
       res.status(200).json(systems); // Respond with the systems
     } catch (error) {
-      res.status(500).json({ error: "Error fetching systems" });
+      res.status(500).json({ error: "Error fetching systems" }); // Error handling
     }
   }
 );
@@ -147,13 +132,13 @@ router.put(
   "/organizations/:orgId/systems/:systemId",
   async (req: Request, res: Response) => {
     try {
-      const { systemId } = req.params; // Destructure the system ID from URL parameters
+      const { systemId } = req.params; // Extract system ID from URL params
       const { type, workflowItems, vendorType, vendorName, year, make, model } =
-        req.body; // Destructure fields based on system type
+        req.body; // Extract system details
 
-      // Prepare updated system data
-      let systemData: any = { type }; // Base data
+      let systemData: any = { type }; // Prepare base system data
 
+      // Check the type of system and update relevant data
       if (type === "workflow") {
         systemData.workflowItems = workflowItems;
       } else if (type === "vendorSolution") {
@@ -169,15 +154,13 @@ router.put(
         systemId,
         systemData,
         { new: true }
-      ); // Update the system with the new data
-
-      if (!updatedSystem) {
-        return res.status(404).json({ error: "System not found" });
-      }
+      ); // Update the system
+      if (!updatedSystem)
+        return res.status(404).json({ error: "System not found" }); // If system not found
 
       res.status(200).json(updatedSystem); // Respond with the updated system
     } catch (error) {
-      res.status(500).json({ error: "Error updating system" });
+      res.status(500).json({ error: "Error updating system" }); // Error handling
     }
   }
 );
@@ -187,18 +170,16 @@ router.delete(
   "/organizations/:orgId/systems/:systemId",
   async (req: Request, res: Response) => {
     try {
-      const { systemId } = req.params; // Destructure the system ID from URL parameters
+      const { systemId } = req.params; // Extract system ID from URL params
       const deletedSystem = await System.findByIdAndDelete(systemId); // Delete the system
+      if (!deletedSystem)
+        return res.status(404).json({ error: "System not found" }); // If system not found
 
-      if (!deletedSystem) {
-        return res.status(404).json({ error: "System not found" });
-      }
-
-      res.status(200).json({ message: "System deleted" });
+      res.status(200).json({ message: "System deleted" }); // Respond with success message
     } catch (error) {
-      res.status(500).json({ error: "Error deleting system" });
+      res.status(500).json({ error: "Error deleting system" }); // Error handling
     }
   }
 );
 
-export default router;
+export default router; // Export the router

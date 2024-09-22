@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import API_BASE_URL from "../config";
+// client/src/components/SystemForm.tsx
+
+import React, { useState } from "react"; // Import React and the useState hook
+import API_BASE_URL from "../config"; // Import the base URL for API calls
 
 // Define the types of systems available
 const systemTypes = ["Workflow", "Vendor Solution", "Vehicle"];
@@ -9,6 +11,7 @@ interface SystemFormProps {
   onSystemAdded: () => void; // Callback to refresh systems after adding a new one
 }
 
+// Main SystemForm component
 const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
   const [selectedType, setSelectedType] = useState(systemTypes[0]); // Track selected system type
   const [details, setDetails] = useState(""); // General details for the system
@@ -21,10 +24,10 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
   }); // Vehicle information
   const [error, setError] = useState<string | null>(null); // Track error message
 
-  // Handle form submission
+  // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault(); // Prevent default form submission
+    setError(null); // Reset any previous error
 
     // Prepare the details based on the system type
     let systemDetails;
@@ -68,15 +71,16 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
   // Update the UI to show different fields based on the selected system type
   return (
     <form
-      onSubmit={handleSubmit}
-      className="p-6 bg-gray-100 rounded-lg shadow-md"
+      onSubmit={handleSubmit} // Handle form submission
+      className="p-6 bg-gray-100 rounded-lg shadow-md" // Styling for the form container
     >
       <h2 className="text-xl font-semibold mb-4">Add System</h2>
 
+      {/* Dropdown for system type selection */}
       <label className="block mb-2">System Type</label>
       <select
         value={selectedType}
-        onChange={(e) => setSelectedType(e.target.value)}
+        onChange={(e) => setSelectedType(e.target.value)} // Update the selected type
         className="w-full mb-4 p-2 border rounded"
       >
         {systemTypes.map((type) => (
@@ -86,14 +90,14 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         ))}
       </select>
 
-      {/* Show fields based on selected system type */}
+      {/* Show additional fields based on selected system type */}
       {selectedType === "Workflow" && (
         <div className="mb-4">
           <label className="block mb-2">Workflow Items</label>
-          {/* Workflow form logic here, e.g., text inputs for each item */}
+          {/* Input field for workflow items, separated by commas */}
           <textarea
-            value={workflowItems.join(", ")}
-            onChange={(e) => setWorkflowItems(e.target.value.split(", "))}
+            value={workflowItems.join(", ")} // Display joined workflow items
+            onChange={(e) => setWorkflowItems(e.target.value.split(", "))} // Update workflow items
             className="w-full p-2 border rounded"
             placeholder="Enter workflow items separated by commas"
           />
@@ -103,10 +107,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
       {selectedType === "Vendor Solution" && (
         <div className="mb-4">
           <label className="block mb-2">Vendor Name</label>
+          {/* Input field for vendor name */}
           <input
             type="text"
             value={vendorName}
-            onChange={(e) => setVendorName(e.target.value)}
+            onChange={(e) => setVendorName(e.target.value)} // Update vendor name
             className="w-full p-2 border rounded"
             placeholder="Enter vendor name"
           />
@@ -116,11 +121,12 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
       {selectedType === "Vehicle" && (
         <div className="mb-4">
           <label className="block mb-2">Vehicle Information</label>
+          {/* Input fields for vehicle year, make, and model */}
           <input
             type="text"
             value={vehicleInfo.year}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, year: e.target.value })
+            onChange={
+              (e) => setVehicleInfo({ ...vehicleInfo, year: e.target.value }) // Update vehicle year
             }
             className="w-full p-2 border rounded mb-2"
             placeholder="Year"
@@ -128,8 +134,8 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
           <input
             type="text"
             value={vehicleInfo.make}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, make: e.target.value })
+            onChange={
+              (e) => setVehicleInfo({ ...vehicleInfo, make: e.target.value }) // Update vehicle make
             }
             className="w-full p-2 border rounded mb-2"
             placeholder="Make"
@@ -137,8 +143,8 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
           <input
             type="text"
             value={vehicleInfo.model}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, model: e.target.value })
+            onChange={
+              (e) => setVehicleInfo({ ...vehicleInfo, model: e.target.value }) // Update vehicle model
             }
             className="w-full p-2 border rounded"
             placeholder="Model"
@@ -146,10 +152,12 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         </div>
       )}
 
+      {/* Display error message if there's an error */}
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* Submit button to add the system */}
       <button
-        type="submit"
+        type="submit" // Submit the form when clicked
         className="w-full bg-blue-600 text-white p-2 rounded-lg"
       >
         Add System

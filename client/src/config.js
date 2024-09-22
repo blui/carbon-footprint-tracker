@@ -1,7 +1,9 @@
 // client/src/config.js
 
-// Base URL for backend API requests
-// This URL should point to the backend server, which handles all API calls for organizations and systems
-const API_BASE_URL = "http://localhost:3000"; // Local development URL for the backend
+// Use environment variables or set API base URLs depending on the environment
+const API_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://your-production-api-url.com" // Production API URL
+    : "http://localhost:3000"; // Local development API URL
 
-export default API_BASE_URL; // Export the base URL for use in other components
+export default API_BASE_URL;

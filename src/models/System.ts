@@ -1,28 +1,32 @@
-import mongoose from "mongoose";
+// src/models/System.ts
+
+import mongoose from "mongoose"; // Import mongoose for MongoDB schema creation
 
 // Define schema for different system types
 const SystemSchema = new mongoose.Schema({
-  type: { type: String, required: true }, // System type: workflow, vendor solution, or vehicle
+  type: { type: String, required: true }, // System type: "workflow", "vendor solution", or "vehicle"
 
-  // For Workflow
+  // Workflow type systems
   workflowItems: [
-    { type: String }, // Workflow can contain a list of items (strings)
+    { type: String }, // Each workflow system can contain a list of workflow items (simple strings)
   ],
 
-  // For Vendor Solution
-  vendorType: { type: String }, // Type of vendor solution (e.g., software, hardware)
-  vendorName: { type: String }, // Vendor name
+  // Vendor Solution type systems
+  vendorType: { type: String }, // The type of vendor solution (e.g., "software", "hardware")
+  vendorName: { type: String }, // Name of the vendor providing the solution
 
-  // For Vehicle
-  year: { type: Number }, // Year of the vehicle
-  make: { type: String }, // Make of the vehicle (e.g., Toyota, Ford)
-  model: { type: String }, // Model of the vehicle (e.g., Corolla, Mustang)
+  // Vehicle type systems
+  year: { type: Number }, // The year of the vehicle
+  make: { type: String }, // Vehicle make (e.g., "Toyota", "Ford")
+  model: { type: String }, // Vehicle model (e.g., "Corolla", "Mustang")
 
-  organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization" }, // Reference to organization
-  createdAt: { type: Date, default: Date.now }, // Automatically set the creation date
+  // Reference to the organization that the system belongs to
+  organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization" }, // Establish a reference to the Organization model
+
+  createdAt: { type: Date, default: Date.now }, // Automatically set the creation date for each system
 });
 
-// Create the System model
+// Create the System model based on the schema
 const System = mongoose.model("System", SystemSchema);
 
-export default System;
+export default System; // Export the model for use in other parts of the app

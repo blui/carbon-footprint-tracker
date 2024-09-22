@@ -1,3 +1,5 @@
+// client/src/components/SystemTable.tsx
+
 import React from "react";
 
 // Define the System interface to represent a system object with optional fields for various types

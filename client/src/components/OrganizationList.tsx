@@ -26,7 +26,6 @@ const OrganizationList: React.FC<OrganizationListProps> = ({
 }) => {
   return (
     <ul className="space-y-2">
-      {" "}
       {/* Unordered list with space between list items */}
       {organizations.map((org) => (
         <li

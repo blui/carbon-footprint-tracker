@@ -5,38 +5,39 @@ import SystemTable from "./components/SystemTable"; // Import SystemTable compon
 import API_BASE_URL from "./config"; // Import API base URL
 
 const App = () => {
+  // State to manage the selected organization ID, list of systems, organizations, and the selected organization's name
   const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
   const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
   const [organizations, setOrganizations] = useState<any[]>([]); // List of organizations
   const [selectedOrgName, setSelectedOrgName] = useState<string | null>(null); // Track the selected organization name
 
-  // Function to fetch organizations from the backend
+  // Function to fetch organizations from the backend API
   const fetchOrganizations = () => {
     fetch(`${API_BASE_URL}/api/organizations`)
-      .then((res) => res.json())
-      .then((data) => setOrganizations(data))
-      .catch((err) => console.error("Error fetching organizations:", err));
+      .then((res) => res.json()) // Parse the response to JSON
+      .then((data) => setOrganizations(data)) // Set organizations in state
+      .catch((err) => console.error("Error fetching organizations:", err)); // Handle errors
   };
 
-  // Fetch systems for a selected organization
+  // Function to fetch systems for a selected organization
   const fetchSystems = (orgId: string) => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
-      .then((res) => res.json())
-      .then((data) => setSystems(data))
-      .catch((err) => console.error("Error fetching systems:", err));
+      .then((res) => res.json()) // Parse the response to JSON
+      .then((data) => setSystems(data)) // Set systems in state
+      .catch((err) => console.error("Error fetching systems:", err)); // Handle errors
   };
 
-  // Fetch organizations on initial render
+  // Fetch organizations when the component is mounted
   useEffect(() => {
     fetchOrganizations();
   }, []);
 
-  // Handle selecting an organization
+  // Function to handle selecting an organization
   const handleSelectOrganization = (
     selectedOrgId: string,
     selectedOrgName: string
   ) => {
-    setOrgId(selectedOrgId);
+    setOrgId(selectedOrgId); // Set the selected organization's ID
     setSelectedOrgName(selectedOrgName); // Set the selected organization's name
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
@@ -55,16 +56,14 @@ const App = () => {
 
           {/* List of organizations */}
           <ul className="space-y-2">
-            {" "}
-            {/* Adds vertical spacing between organization items */}
             {organizations.map((org) => (
               <li
                 key={org._id}
                 onClick={() => handleSelectOrganization(org._id, org.name)}
                 className={`cursor-pointer py-2 px-4 bg-gray-700 rounded-lg ${
                   org._id === orgId
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-700 text-gray-300"
+                    ? "bg-blue-500 text-white" // Highlight selected organization
+                    : "bg-gray-700 text-gray-300" // Non-selected organizations
                 }`}
               >
                 {org.name}
@@ -82,6 +81,7 @@ const App = () => {
         <div className="flex-grow p-10 bg-white shadow-lg">
           {selectedOrgName ? (
             <>
+              {/* Display the selected organization's name */}
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Systems for {selectedOrgName}
               </h2>
@@ -108,8 +108,8 @@ const App = () => {
                 {/* Right Side: System Form Section */}
                 <div className="w-1/2">
                   <SystemForm
-                    orgId={orgId!}
-                    onSystemAdded={() => fetchSystems(orgId!)}
+                    orgId={orgId!} // Pass the selected organization ID to SystemForm
+                    onSystemAdded={() => fetchSystems(orgId!)} // Refresh systems list after adding a system
                   />
                 </div>
               </div>
@@ -119,6 +119,7 @@ const App = () => {
                 <div className="mt-8">
                   <SystemTable
                     systems={systems}
+                    // Handle deleting a system
                     onDeleteSystem={(systemId) => {
                       fetch(
                         `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
@@ -127,6 +128,7 @@ const App = () => {
                         }
                       ).then(() => fetchSystems(orgId!)); // Refetch systems after deletion
                     }}
+                    // Handle editing a system
                     onEditSystem={(systemId) => {
                       const updatedDetails = prompt(
                         "Enter new system details:"
@@ -137,7 +139,7 @@ const App = () => {
                           {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ details: updatedDetails }),
+                            body: JSON.stringify({ details: updatedDetails }), // Update system details
                           }
                         ).then(() => fetchSystems(orgId!)); // Refetch systems after edit
                       }

@@ -61,7 +61,7 @@ const OrganizationForm: React.FC<OrganizationFormProps> = ({
           type="text"
           value={name}
           onChange={(e) => {
-            setName(e.target.value);
+            setName(e.target.value); // Update state when the user types
             console.log("Current Input Value: ", e.target.value); // Debugging to ensure it's working
           }}
           className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary"
