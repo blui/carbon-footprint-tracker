@@ -1,43 +1,53 @@
 // client/src/components/OrganizationList.tsx
 
 import React from "react";
+import API_BASE_URL from "../config";
 
-// Define interfaces for the Organization and System
 interface Organization {
   _id: string;
   name: string;
 }
 
-// Define props for the OrganizationList component
 interface OrganizationListProps {
-  organizations: Organization[]; // Array of organizations
-  onSelect: (selectedOrgId: string, selectedOrgName: string) => void; // Callback to handle organization selection
+  organizations: Organization[];
+  onSelect: (orgId: string, orgName: string) => void;
+  onUpdate: (orgId: string) => void; // Pass update function
+  onDelete: (orgId: string) => void; // Pass delete function
 }
 
-// Main component to display a list of organizations and trigger the selection
 const OrganizationList: React.FC<OrganizationListProps> = ({
   organizations,
   onSelect,
+  onUpdate,
+  onDelete,
 }) => {
   return (
-    <div>
-      <h3>Organizations</h3>
-      <ul>
-        {organizations.length === 0 ? (
-          <p>No organizations available.</p>
-        ) : (
-          organizations.map((org) => (
-            <li
-              key={org._id}
-              onClick={() => onSelect(org._id, org.name)} // Trigger the onSelect function when an organization is clicked
-              style={{ cursor: "pointer", padding: "10px 0", color: "#0078D4" }}
+    <ul className="space-y-2">
+      {organizations.map((org) => (
+        <li key={org._id} className="flex justify-between items-center py-2">
+          <span
+            onClick={() => onSelect(org._id, org.name)}
+            className="cursor-pointer text-lg text-blue-600"
+          >
+            {org.name}
+          </span>
+          <div>
+            <button
+              onClick={() => onUpdate(org._id)}
+              className="text-blue-500 mx-2"
             >
-              {org.name}
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+              Edit
+            </button>
+            <button
+              onClick={() => onDelete(org._id)}
+              className="text-red-500 mx-2"
+            >
+              Delete
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };
 

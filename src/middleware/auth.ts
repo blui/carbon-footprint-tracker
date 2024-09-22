@@ -1,33 +1,33 @@
 // src/middleware/auth.ts
 
-import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken"; // Import JSON Web Token library for token verification
+import { Request, Response, NextFunction } from "express"; // Import types for Request, Response, and NextFunction
 
-// Extend the Request interface to include the user property (added dynamically in the middleware)
+// Extend the Request interface to include a user property (added dynamically in the middleware)
 interface AuthenticatedRequest extends Request {
-  user?: string | object; // The user property can be a string or an object, depending on how JWT is decoded
+  user?: string | object; // The 'user' property can be a string or object, depending on how JWT is decoded
 }
 
-// Middleware to authenticate user based on JWT token
+// Middleware to authenticate the user based on the JWT token provided in the request
 const authenticate = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.header("x-auth-token"); // Retrieve the token from the request header
+  const token = req.header("x-auth-token"); // Retrieve the token from the request headers
 
-  // Check if no token was provided
+  // If no token is provided, return a 401 status code (Unauthorized)
   if (!token) return res.status(401).send("Access denied. No token provided.");
 
   try {
-    // Verify the token using the secret key and assign the decoded payload to req.user
-    const decoded = jwt.verify(token, "your_jwt_secret");
-    req.user = decoded; // Attach the decoded payload (user info) to the request object
-    next(); // Proceed to the next middleware or route handler
+    // Verify the token using a secret key ('your_jwt_secret') and decode it
+    const decoded = jwt.verify(token, "your_jwt_secret"); // Replace with actual secret key in production
+    req.user = decoded; // Attach the decoded token payload (user information) to the request object
+    next(); // Call the next middleware or route handler
   } catch (error) {
-    // If token verification fails, send an invalid token response
+    // If token verification fails, send a 400 status code (Bad Request)
     res.status(400).send("Invalid token.");
   }
 };
 
-export default authenticate;
+export default authenticate; // Export the middleware for use in other parts of the application

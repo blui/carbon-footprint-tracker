@@ -69,22 +69,48 @@ const App: React.FC = () => {
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
   };
 
+  // Handle organization update
+  const handleUpdateOrganization = async (orgId: string) => {
+    const updatedName = prompt("Enter new organization name:");
+    if (updatedName) {
+      await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: updatedName }),
+      });
+      fetchOrganizations(); // Refresh the list
+    }
+  };
+
+  // Handle organization deletion
+  const handleDeleteOrganization = async (orgId: string) => {
+    if (window.confirm("Are you sure you want to delete this organization?")) {
+      await fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
+        method: "DELETE",
+      });
+      fetchOrganizations(); // Refresh the list
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Application Header */}
       <header className="bg-blue-600 text-white text-center py-6 shadow-lg">
-        <h1 className="text-3xl font-bold">DataBridge Log Analyzer</h1>
+        <h1 className="text-3xl font-bold">Carbon Footprint Tracker</h1>
       </header>
 
       <div className="flex">
         {/* Sidebar */}
         <div className="w-72 bg-gray-800 text-white p-6 h-screen">
+          {/* Updated heading text to 'Your Organizations' */}
           <h2 className="text-xl font-semibold mb-4 text-center">
-            Organizations
+            Your Organizations
           </h2>
           <OrganizationList
             organizations={organizations}
             onSelect={handleSelectOrganization}
+            onUpdate={handleUpdateOrganization}
+            onDelete={handleDeleteOrganization}
           />
           <div className="mt-8">
             <OrganizationForm
@@ -100,7 +126,6 @@ const App: React.FC = () => {
               <h2 className="text-2xl font-semibold text-gray-700 border-b-2 border-blue-600 pb-2">
                 {selectedOrg}
               </h2>
-              {/* Pass orgId to SystemForm instead of organizations */}
               <SystemForm orgId={orgId!} onSystemAdded={handleSystemAdded} />
               {systems.length > 0 ? (
                 <ul className="mt-6">

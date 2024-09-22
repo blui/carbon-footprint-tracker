@@ -1,28 +1,26 @@
 // src/server.ts
 
 import express, { Request, Response } from "express"; // Import express and types for Request/Response
-import cors from "cors"; // Import CORS for cross-origin requests
-import apiRoutes from "./routes/api"; // Import API routes
-import "./db"; // Import MongoDB connection (automatically connects when the file is imported)
+import cors from "cors"; // Import CORS for handling cross-origin requests
+import apiRoutes from "./routes/api"; // Import the API routes module
+import "./db"; // Import the MongoDB connection (connects automatically)
 
-const app = express(); // Initialize an Express application
-const port = process.env.PORT || 3000; // Use the port from environment variables or default to 3000
+const app = express(); // Initialize the Express application
+const port = process.env.PORT || 3000; // Set the port (use environment variable or fallback to 3000)
 
-// Middleware to enable CORS (allows cross-origin requests)
-app.use(cors());
+// Apply middleware
+app.use(cors()); // Enable CORS for handling cross-origin requests
+app.use(express.json()); // Middleware to parse incoming JSON request bodies
 
-// Middleware to parse incoming JSON requests
-app.use(express.json());
+// Route handling
+app.use("/api", apiRoutes); // Use the API routes, all prefixed with '/api'
 
-// API route middleware (all routes prefixed with "/api")
-app.use("/api", apiRoutes);
-
-// Root route for checking server health
+// Root route (for API health check or simple response)
 app.get("/", (req: Request, res: Response) => {
-  res.send("Carbon Footprint Tracker API is up and running!"); // Simple health check response
+  res.send("Carbon Footprint Tracker API is up and running!"); // Simple health check
 });
 
 // Start the server and listen on the specified port
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`); // Log server start message
+  console.log(`Server is running on port ${port}`); // Log the port the server is running on
 });
