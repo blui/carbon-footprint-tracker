@@ -84,6 +84,12 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
     <form
       onSubmit={handleSubmit}
       className="p-6 bg-gray-100 rounded-lg shadow-md"
+      style={{
+        height: "520px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }} // Set fixed height and layout properties
     >
       <h2 className="text-xl font-semibold mb-4">Add System</h2>
 
@@ -100,88 +106,98 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         ))}
       </select>
 
-      {/* Show fields based on selected system type */}
-      {selectedType === "Workflow" && (
-        <>
-          <div className="mb-4">
-            <label className="block mb-2">Workflow Name</label>
-            <input
-              type="text"
-              value={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter workflow name"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Workflow</label>
-            <textarea
-              value={workflow}
-              onChange={(e) => setWorkflow(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter workflow description or steps"
-            />
-          </div>
-        </>
-      )}
+      <div style={{ flexGrow: 1 }}>
+        {/* Show fields based on selected system type */}
+        {selectedType === "Workflow" && (
+          <>
+            <div className="mb-4">
+              <label className="block mb-2">Workflow Name</label>
+              <input
+                type="text"
+                value={workflowName}
+                onChange={(e) => setWorkflowName(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="Enter workflow name"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Workflow</label>
+              <textarea
+                value={workflow}
+                onChange={(e) => setWorkflow(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="Enter workflow description or steps"
+              />
+            </div>
+          </>
+        )}
 
-      {selectedType === "Vendor" && (
-        <>
-          <div className="mb-4">
-            <label className="block mb-2">Vendor Name</label>
-            <input
-              type="text"
-              value={vendorName}
-              onChange={(e) => setVendorName(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter vendor name"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Vendor Classification</label>
-            <input
-              type="text"
-              value={vendorClassification}
-              onChange={(e) => setVendorClassification(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Enter vendor classification"
-            />
-          </div>
-        </>
-      )}
+        {selectedType === "Vendor" && (
+          <>
+            <div className="mb-4">
+              <label className="block mb-2">Vendor Name</label>
+              <input
+                type="text"
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="Enter vendor name"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Vendor Classification</label>
+              <input
+                type="text"
+                value={vendorClassification}
+                onChange={(e) => setVendorClassification(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="Enter vendor classification"
+              />
+            </div>
+          </>
+        )}
 
-      {selectedType === "Vehicle" && (
-        <div className="mb-4">
-          <label className="block mb-2">Vehicle Information</label>
-          <input
-            type="text"
-            value={vehicleInfo.year}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, year: e.target.value })
-            }
-            className="w-full p-2 border rounded mb-2"
-            placeholder="Year"
-          />
-          <input
-            type="text"
-            value={vehicleInfo.make}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, make: e.target.value })
-            }
-            className="w-full p-2 border rounded mb-2"
-            placeholder="Make"
-          />
-          <input
-            type="text"
-            value={vehicleInfo.model}
-            onChange={(e) =>
-              setVehicleInfo({ ...vehicleInfo, model: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-            placeholder="Model"
-          />
-        </div>
-      )}
+        {selectedType === "Vehicle" && (
+          <>
+            <div className="mb-4">
+              <label className="block mb-2">Vehicle Year</label>
+              <input
+                type="text"
+                value={vehicleInfo.year}
+                onChange={(e) =>
+                  setVehicleInfo({ ...vehicleInfo, year: e.target.value })
+                }
+                className="w-full p-2 border rounded mb-2"
+                placeholder="Year"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Vehicle Make</label>
+              <input
+                type="text"
+                value={vehicleInfo.make}
+                onChange={(e) =>
+                  setVehicleInfo({ ...vehicleInfo, make: e.target.value })
+                }
+                className="w-full p-2 border rounded mb-2"
+                placeholder="Make"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Vehicle Model</label>
+              <input
+                type="text"
+                value={vehicleInfo.model}
+                onChange={(e) =>
+                  setVehicleInfo({ ...vehicleInfo, model: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+                placeholder="Model"
+              />
+            </div>
+          </>
+        )}
+      </div>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
