@@ -3,13 +3,20 @@ import React from "react";
 // Define the System interface
 interface System {
   _id: string;
-  type: string; // 'workflow', 'vendorSolution', 'vehicle'
-  workflowItems?: string[]; // Workflow items (for 'workflow')
-  vendorType?: string; // Vendor type (for 'vendorSolution')
-  vendorName?: string; // Vendor name (for 'vendorSolution')
-  year?: number; // Year of the vehicle (for 'vehicle')
-  make?: string; // Make of the vehicle (for 'vehicle')
-  model?: string; // Model of the vehicle (for 'vehicle')
+  type: string; // 'workflowSystem', 'vendorSystem', 'vehicleSystem'
+  workflowSystem?: {
+    name: string;
+    workflow: string;
+  }; // WorkflowSystem details
+  vendorSystem?: {
+    name: string;
+    classification: string;
+  }; // VendorSystem details
+  vehicleSystem?: {
+    year: number;
+    make: string;
+    model: string;
+  }; // VehicleSystem details
 }
 
 // Props for SystemTable
@@ -27,7 +34,6 @@ const SystemTable: React.FC<SystemTableProps> = ({
 }) => {
   return (
     <>
-      {/* Add the System Information title */}
       <h2 className="text-2xl font-semibold mb-6">System Information</h2>
 
       <table className="min-w-full table-auto bg-white shadow-lg">
@@ -43,29 +49,48 @@ const SystemTable: React.FC<SystemTableProps> = ({
             <tr key={system._id}>
               <td className="border px-4 py-2">{system.type}</td>
               <td className="border px-4 py-2">
-                {/* Workflow Items */}
-                {system.type.toLowerCase() === "workflow" && (
-                  <ul>
-                    {system.workflowItems && system.workflowItems.length > 0
-                      ? system.workflowItems.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))
-                      : "No Workflow Items"}
-                  </ul>
-                )}
-                {/* Vendor Solution Details */}
-                {system.type.toLowerCase() === "vendorsolution" && (
+                {/* WorkflowSystem Details */}
+                {system.type === "workflowSystem" && system.workflowSystem && (
                   <>
-                    <p>Vendor Name: {system.vendorName || "N/A"}</p>
-                    <p>Vendor Type: {system.vendorType || "N/A"}</p>
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {system.workflowSystem.name || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Workflow:</strong>{" "}
+                      {system.workflowSystem.workflow || "No workflow items"}
+                    </p>
                   </>
                 )}
-                {/* Vehicle Details */}
-                {system.type.toLowerCase() === "vehicle" && (
+
+                {/* VendorSystem Details */}
+                {system.type === "vendorSystem" && system.vendorSystem && (
                   <>
-                    <p>Year: {system.year || "N/A"}</p>
-                    <p>Make: {system.make || "N/A"}</p>
-                    <p>Model: {system.model || "N/A"}</p>
+                    <p>
+                      <strong>Name:</strong> {system.vendorSystem.name || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Classification:</strong>{" "}
+                      {system.vendorSystem.classification || "N/A"}
+                    </p>
+                  </>
+                )}
+
+                {/* VehicleSystem Details */}
+                {system.type === "vehicleSystem" && system.vehicleSystem && (
+                  <>
+                    <p>
+                      <strong>Year:</strong>{" "}
+                      {system.vehicleSystem.year || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Make:</strong>{" "}
+                      {system.vehicleSystem.make || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Model:</strong>{" "}
+                      {system.vehicleSystem.model || "N/A"}
+                    </p>
                   </>
                 )}
               </td>

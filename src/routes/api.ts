@@ -79,57 +79,58 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { orgId } = req.params;
-      const { type, workflowItems, vendorType, vendorName, year, make, model } =
+      const { type, name, workflow, classification, year, make, model } =
         req.body;
 
+      // Find the organization by ID
       const organization = await Organization.findById(orgId);
       if (!organization) {
         return res.status(404).json({ error: "Organization not found" });
       }
 
-      // Log the incoming request data for debugging
-      console.log("Request data:", req.body);
+      // Initialize systemData object with common fields
+      let systemData: Record<string, any> = { type, organization: orgId };
 
-      // Prepare systemData based on the type
-      let systemData: any = { type, organization: orgId };
-
-      if (type === "workflow") {
-        if (workflowItems && Array.isArray(workflowItems)) {
-          systemData.workflowItems = workflowItems;
-        } else {
-          return res
-            .status(400)
-            .json({ error: "Invalid or missing workflow items" });
+      // Handle system type and its specific fields
+      if (type === "workflowSystem") {
+        // Check that 'name' and 'workflow' are provided for workflow systems
+        if (!name || !workflow) {
+          return res.status(400).json({
+            error: "Invalid or missing workflow data",
+          });
         }
-      } else if (type === "vendorSolution") {
-        systemData.vendorType = vendorType;
-        systemData.vendorName = vendorName;
-      } else if (type === "vehicle") {
-        // Check for missing vehicle details and log them
-        console.log("Vehicle details:", { year, make, model });
-
+        systemData.workflowSystem = { name, workflow }; // Expecting workflow as a string
+      } else if (type === "vendorSystem") {
+        // Validate 'name' and 'classification' for vendor systems
+        if (!name || !classification) {
+          return res.status(400).json({
+            error: "Invalid or missing vendor system data",
+          });
+        }
+        systemData.vendorSystem = { name, classification };
+      } else if (type === "vehicleSystem") {
+        // Validate vehicle details (year, make, model)
         if (!year || !make || !model) {
-          return res
-            .status(400)
-            .json({ error: "Missing vehicle details: year, make, or model" });
+          return res.status(400).json({
+            error: "Invalid or missing vehicle details",
+          });
         }
-
-        // Add vehicle details to systemData
-        systemData.year = year;
-        systemData.make = make;
-        systemData.model = model;
+        systemData.vehicleSystem = { year, make, model };
+      } else {
+        return res.status(400).json({ error: "Invalid system type" });
       }
 
-      // Create and save the system
+      // Create and save the new system
       const newSystem = new System(systemData);
       await newSystem.save();
 
-      // Add the system to the organization
+      // Add the new system to the organization
       organization.systems.push(newSystem._id);
       await organization.save();
 
       res.status(201).json(newSystem);
     } catch (error: any) {
+      // Log the error for debugging
       console.error("Error adding system:", error);
       res
         .status(500)
@@ -144,13 +145,51 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { orgId } = req.params;
-      const systems = await System.find({ organization: orgId });
 
-      // Log the fetched systems to verify what the backend is returning
-      console.log("Systems fetched from the database:", systems);
+      // Fetch systems for the organization
+      const systems = await System.find({ organization: orgId }).lean(); // Use lean() for better performance
 
-      res.status(200).json(systems);
-    } catch (error) {
+      // Process systems to ensure proper structure
+      const processedSystems = systems.map((system) => {
+        if (system.type === "workflowSystem") {
+          return {
+            _id: system._id,
+            type: system.type,
+            workflowSystem: {
+              name: system.workflowSystem?.name || "N/A",
+              workflow: system.workflowSystem?.workflow || "No workflow items",
+            },
+          };
+        } else if (system.type === "vendorSystem") {
+          return {
+            _id: system._id,
+            type: system.type,
+            vendorSystem: {
+              name: system.vendorSystem?.name || "N/A",
+              classification: system.vendorSystem?.classification || "N/A",
+            },
+          };
+        } else if (system.type === "vehicleSystem") {
+          return {
+            _id: system._id,
+            type: system.type,
+            vehicleSystem: {
+              year: system.vehicleSystem?.year || "N/A",
+              make: system.vehicleSystem?.make || "N/A",
+              model: system.vehicleSystem?.model || "N/A",
+            },
+          };
+        } else {
+          return system; // Return unchanged for unexpected types
+        }
+      });
+
+      // Log the processed systems to verify
+      console.log("Processed systems:", processedSystems);
+
+      res.status(200).json(processedSystems);
+    } catch (error: any) {
+      console.error("Error fetching systems:", error.message);
       res.status(500).json({ error: "Error fetching systems" });
     }
   }
