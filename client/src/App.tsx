@@ -148,23 +148,87 @@ const App = () => {
                     }}
                     // Handle editing a system
                     onEditSystem={(systemId) => {
-                      const updatedDetails = prompt(
-                        "Enter new system details:"
+                      const systemToEdit = systems.find(
+                        (sys) => sys._id === systemId
                       );
-                      if (updatedDetails) {
-                        console.log(`Editing system with ID: ${systemId}`); // Debugging: log the system being edited
-                        fetch(
-                          `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
-                          {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ details: updatedDetails }), // Update system details
-                          }
-                        ).then(() => {
-                          console.log("System edited, refetching systems..."); // Debugging: log after edit
-                          fetchSystems(orgId!); // Refetch systems after edit
-                        });
+
+                      if (!systemToEdit) return;
+
+                      let updatedDetails = {};
+
+                      // Prompt user for updated values based on the type
+                      if (systemToEdit.type === "workflowSystem") {
+                        const updatedName = prompt(
+                          "Enter updated workflow name",
+                          systemToEdit.name || ""
+                        );
+                        const updatedWorkflow = prompt(
+                          "Enter updated workflow items",
+                          systemToEdit.workflow
+                            ? systemToEdit.workflow.join(", ")
+                            : ""
+                        );
+
+                        updatedDetails = {
+                          name: updatedName ? updatedName : systemToEdit.name, // Use existing name if prompt is canceled or empty
+                          workflow: updatedWorkflow
+                            ? updatedWorkflow
+                            : systemToEdit.workflow
+                            ? systemToEdit.workflow.join(", ")
+                            : "", // Ensure workflow is sent as a string
+                        };
+                      } else if (systemToEdit.type === "vendorSystem") {
+                        const updatedName = prompt(
+                          "Enter updated vendor name",
+                          systemToEdit.name || ""
+                        );
+                        const updatedClassification = prompt(
+                          "Enter updated vendor classification",
+                          systemToEdit.classification || ""
+                        );
+                        updatedDetails = {
+                          name: updatedName ? updatedName : systemToEdit.name,
+                          classification: updatedClassification
+                            ? updatedClassification
+                            : systemToEdit.classification,
+                        };
+                      } else if (systemToEdit.type === "vehicleSystem") {
+                        const updatedYear = prompt(
+                          "Enter updated vehicle year",
+                          systemToEdit.year?.toString() || ""
+                        );
+                        const updatedMake = prompt(
+                          "Enter updated vehicle make",
+                          systemToEdit.make || ""
+                        );
+                        const updatedModel = prompt(
+                          "Enter updated vehicle model",
+                          systemToEdit.model || ""
+                        );
+                        updatedDetails = {
+                          year: updatedYear ? updatedYear : systemToEdit.year,
+                          make: updatedMake ? updatedMake : systemToEdit.make,
+                          model: updatedModel
+                            ? updatedModel
+                            : systemToEdit.model,
+                        };
                       }
+
+                      // Send the updated data to the backend
+                      fetch(
+                        `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
+                        {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: systemToEdit.type,
+                            ...updatedDetails,
+                          }),
+                        }
+                      ).then(() => {
+                        console.log("System updated, refetching systems...");
+                        fetchSystems(orgId!); // Refetch systems after edit
+                      });
                     }}
                   />
                 </div>

@@ -201,34 +201,63 @@ router.put(
   async (req: Request, res: Response) => {
     try {
       const { systemId } = req.params; // Extract system ID from URL params
-      const { type, workflowItems, vendorType, vendorName, year, make, model } =
+      const { type, name, workflow, classification, year, make, model } =
         req.body; // Extract system details
 
-      let systemData: any = { type }; // Prepare base system data
+      let systemData: any = {}; // Initialize an empty object to hold system data
 
-      // Check the type of system and update relevant data
-      if (type === "workflow") {
-        systemData.workflowItems = workflowItems;
-      } else if (type === "vendorSolution") {
-        systemData.vendorType = vendorType;
-        systemData.vendorName = vendorName;
-      } else if (type === "vehicle") {
-        systemData.year = year;
-        systemData.make = make;
-        systemData.model = model;
+      // Handle the system type and map it to the appropriate fields
+      if (type === "workflowSystem") {
+        if (!name || !workflow) {
+          return res.status(400).json({
+            error: "Name and workflow are required for workflowSystem",
+          });
+        }
+        systemData = { type, workflowSystem: { name, workflow } };
+      } else if (type === "vendorSystem") {
+        if (!name || !classification) {
+          return res.status(400).json({
+            error: "Name and classification are required for vendorSystem",
+          });
+        }
+        systemData = { type, vendorSystem: { name, classification } };
+      } else if (type === "vehicleSystem") {
+        if (!year || !make || !model) {
+          return res.status(400).json({
+            error: "Year, make, and model are required for vehicleSystem",
+          });
+        }
+        systemData = { type, vehicleSystem: { year, make, model } };
+      } else {
+        return res.status(400).json({ error: "Invalid system type" });
       }
 
+      // Update the system
       const updatedSystem = await System.findByIdAndUpdate(
         systemId,
         systemData,
         { new: true }
-      ); // Update the system
-      if (!updatedSystem)
-        return res.status(404).json({ error: "System not found" }); // If system not found
+      );
 
-      res.status(200).json(updatedSystem); // Respond with the updated system
-    } catch (error) {
-      res.status(500).json({ error: "Error updating system" }); // Error handling
+      if (!updatedSystem) {
+        return res.status(404).json({ error: "System not found" }); // If system not found
+      }
+
+      // Respond with the updated system data
+      res.status(200).json(updatedSystem);
+    } catch (error: unknown) {
+      // Check if the error is an instance of Error
+      if (error instanceof Error) {
+        res
+          .status(500)
+          .json({ error: "Error updating system", details: error.message }); // Access the message
+      } else {
+        // Handle cases where the error is not an instance of Error
+        res.status(500).json({
+          error: "Error updating system",
+          details: "Unknown error occurred",
+        });
+      }
     }
   }
 );
