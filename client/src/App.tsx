@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import OrganizationForm from "./components/OrganizationForm";
+import OrganizationList from "./components/OrganizationList"; // Ensure you import this component
 import SystemForm from "./components/SystemForm";
 import SystemTable from "./components/SystemTable"; // Import SystemTable component
 import API_BASE_URL from "./config"; // Import API base URL
 
 const App = () => {
-  // State to manage the selected organization ID, list of systems, organizations, and the selected organization's name
   const [orgId, setOrgId] = useState<string | null>(null); // Track selected organization ID
   const [systems, setSystems] = useState<any[]>([]); // List of systems for the selected organization
   const [organizations, setOrganizations] = useState<any[]>([]); // List of organizations
@@ -15,12 +15,12 @@ const App = () => {
   const fetchOrganizations = () => {
     console.log("Fetching organizations...");
     fetch(`${API_BASE_URL}/api/organizations`)
-      .then((res) => res.json()) // Parse the response to JSON
+      .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched organizations:", data); // Log fetched organizations
+        console.log("Fetched organizations:", data);
         setOrganizations(data); // Set organizations in state
       })
-      .catch((err) => console.error("Error fetching organizations:", err)); // Handle errors
+      .catch((err) => console.error("Error fetching organizations:", err));
   };
 
   // Function to fetch systems for a selected organization
@@ -29,7 +29,7 @@ const App = () => {
     fetch(`${API_BASE_URL}/api/organizations/${orgId}/systems`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Systems fetched from backend:", data); // Log systems data
+        console.log("Systems fetched from backend:", data);
         setSystems(data);
       })
       .catch((err) => console.error("Error fetching systems:", err));
@@ -47,10 +47,71 @@ const App = () => {
   ) => {
     console.log(
       `Selected organization ID: ${selectedOrgId}, Name: ${selectedOrgName}`
-    ); // Debugging: log selected organization details
+    );
     setOrgId(selectedOrgId); // Set the selected organization's ID
     setSelectedOrgName(selectedOrgName); // Set the selected organization's name
     fetchSystems(selectedOrgId); // Fetch systems for the selected organization
+  };
+
+  // Function to handle deleting an organization
+  const handleDeleteOrganization = (deleteOrgId: string) => {
+    fetch(`${API_BASE_URL}/api/organizations/${deleteOrgId}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete organization");
+        }
+
+        return response.json(); // Return json only if status is ok
+      })
+      .then(() => {
+        console.log(`Organization ${deleteOrgId} deleted.`);
+
+        // Only reset if the organization being deleted is currently selected
+        if (orgId === deleteOrgId) {
+          setOrgId(null); // Reset selected organization
+          setSelectedOrgName(null); // Reset selected organization name
+          setSystems([]); // Clear systems
+        }
+
+        // Update the organizations list by filtering out the deleted organization
+        setOrganizations((prevOrganizations) =>
+          prevOrganizations.filter((org) => org._id !== deleteOrgId)
+        );
+      })
+      .catch((error) => console.error("Error deleting organization:", error));
+  };
+
+  // Function to handle updating an organization
+  const handleUpdateOrganization = (orgId: string, newName: string) => {
+    fetch(`${API_BASE_URL}/api/organizations/${orgId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: newName }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update organization");
+        }
+        return response.json();
+      })
+      .then(() => {
+        // Update the organization's name directly in the state
+        setOrganizations((prevOrganizations) =>
+          prevOrganizations.map((org) =>
+            org._id === orgId ? { ...org, name: newName } : org
+          )
+        );
+
+        // Update the selected organization name if it's the one being updated
+        if (orgId === orgId) {
+          setSelectedOrgName(newName); // Update displayed name
+        }
+      })
+      .catch((error) => console.error("Error updating organization:", error));
   };
 
   return (
@@ -65,22 +126,13 @@ const App = () => {
         <div className="w-72 bg-gray-800 text-white p-6 h-screen">
           <h2 className="text-xl font-semibold mb-6">Your Organizations</h2>
 
-          {/* List of organizations */}
-          <ul className="space-y-2">
-            {organizations.map((org) => (
-              <li
-                key={org._id}
-                onClick={() => handleSelectOrganization(org._id, org.name)}
-                className={`cursor-pointer py-2 px-4 bg-gray-700 rounded-lg ${
-                  org._id === orgId
-                    ? "bg-blue-500 text-white" // Highlight selected organization
-                    : "bg-gray-700 text-gray-300" // Non-selected organizations
-                }`}
-              >
-                {org.name}
-              </li>
-            ))}
-          </ul>
+          {/* Organization List with Edit and Delete */}
+          <OrganizationList
+            organizations={organizations}
+            onSelect={handleSelectOrganization}
+            onUpdate={handleUpdateOrganization} // Now expects orgId and newName
+            onDelete={handleDeleteOrganization}
+          />
 
           {/* Form to add new organization */}
           <div className="mt-8">
@@ -92,13 +144,11 @@ const App = () => {
         <div className="flex-grow p-10 bg-white shadow-lg">
           {selectedOrgName ? (
             <>
-              {/* Display the selected organization's name */}
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Systems for {selectedOrgName}
               </h2>
 
               <div className="flex mb-8">
-                {/* Left Side: Statistics Section */}
                 <div className="w-1/2 pr-4">
                   <h3 className="text-xl font-semibold mb-2">
                     Organization Statistics
@@ -116,37 +166,33 @@ const App = () => {
                   </div>
                 </div>
 
-                {/* Right Side: System Form Section */}
                 <div className="w-1/2">
                   <SystemForm
                     orgId={orgId!} // Pass the selected organization ID to SystemForm
                     onSystemAdded={() => {
-                      console.log("System added, refetching systems..."); // Debugging: log when a system is added
+                      console.log("System added, refetching systems...");
                       fetchSystems(orgId!); // Refresh systems list after adding a system
                     }}
                   />
                 </div>
               </div>
 
-              {/* Systems Table displayed below both sections */}
               {systems.length > 0 ? (
                 <div className="mt-8">
                   <SystemTable
                     systems={systems}
-                    // Handle deleting a system
                     onDeleteSystem={(systemId) => {
-                      console.log(`Deleting system with ID: ${systemId}`); // Debugging: log the system being deleted
+                      console.log(`Deleting system with ID: ${systemId}`);
                       fetch(
                         `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
                         {
                           method: "DELETE",
                         }
                       ).then(() => {
-                        console.log("System deleted, refetching systems..."); // Debugging: log after deletion
-                        fetchSystems(orgId!); // Refetch systems after deletion
+                        console.log("System deleted, refetching systems...");
+                        fetchSystems(orgId!);
                       });
                     }}
-                    // Handle editing a system
                     onEditSystem={(systemId) => {
                       const systemToEdit = systems.find(
                         (sys) => sys._id === systemId
@@ -156,7 +202,6 @@ const App = () => {
 
                       let updatedDetails = {};
 
-                      // Prompt user for updated values based on the type
                       if (systemToEdit.type === "workflowSystem") {
                         const updatedName = prompt(
                           "Enter updated workflow name",
@@ -170,12 +215,10 @@ const App = () => {
                         );
 
                         updatedDetails = {
-                          name: updatedName ? updatedName : systemToEdit.name, // Use existing name if prompt is canceled or empty
+                          name: updatedName ? updatedName : systemToEdit.name,
                           workflow: updatedWorkflow
                             ? updatedWorkflow
-                            : systemToEdit.workflow
-                            ? systemToEdit.workflow.join(", ")
-                            : "", // Ensure workflow is sent as a string
+                            : systemToEdit.workflow,
                         };
                       } else if (systemToEdit.type === "vendorSystem") {
                         const updatedName = prompt(
@@ -214,7 +257,6 @@ const App = () => {
                         };
                       }
 
-                      // Send the updated data to the backend
                       fetch(
                         `${API_BASE_URL}/api/organizations/${orgId}/systems/${systemId}`,
                         {
@@ -227,7 +269,7 @@ const App = () => {
                         }
                       ).then(() => {
                         console.log("System updated, refetching systems...");
-                        fetchSystems(orgId!); // Refetch systems after edit
+                        fetchSystems(orgId!);
                       });
                     }}
                   />

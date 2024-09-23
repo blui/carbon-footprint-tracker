@@ -1,7 +1,6 @@
-// client/src/components/OrganizationList.tsx
+// OrganizationList.tsx
 
-import React from "react"; // Import React
-import API_BASE_URL from "../config"; // Import the base URL for API calls
+import React from "react";
 
 // Define the structure of an Organization object
 interface Organization {
@@ -13,44 +12,71 @@ interface Organization {
 interface OrganizationListProps {
   organizations: Organization[]; // Array of organizations to display
   onSelect: (orgId: string, orgName: string) => void; // Function to handle organization selection
-  onUpdate: (orgId: string) => void; // Function to handle organization update
+  onUpdate: (orgId: string, newName: string) => void; // Updated to handle two arguments: orgId and newName
   onDelete: (orgId: string) => void; // Function to handle organization deletion
 }
 
-// OrganizationList component - Displays a list of organizations with options to select, edit, and delete
 const OrganizationList: React.FC<OrganizationListProps> = ({
   organizations,
   onSelect,
   onUpdate,
   onDelete,
 }) => {
+  // Function to handle updating the organization name
+  const handleEdit = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    orgId: string,
+    currentName: string
+  ) => {
+    e.stopPropagation(); // Prevent the row click from firing when editing
+    const newName = prompt(
+      "Enter a new name for the organization:",
+      currentName
+    );
+
+    if (newName && newName !== currentName) {
+      onUpdate(orgId, newName); // Pass both orgId and newName
+    }
+  };
+
+  // Function to handle deleting an organization
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    orgId: string,
+    orgName: string
+  ) => {
+    e.stopPropagation(); // Prevent the row click from firing when deleting
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the organization "${orgName}"? This will also delete all associated systems.`
+    );
+
+    if (confirmed) {
+      onDelete(orgId); // Trigger parent deletion function
+    }
+  };
+
   return (
     <ul className="space-y-2">
-      {/* Unordered list with space between list items */}
       {organizations.map((org) => (
         <li
-          key={org._id} // Use the organization ID as a unique key
-          className="flex justify-between items-center py-2" // Flexbox for alignment
+          key={org._id}
+          onClick={() => onSelect(org._id, org.name)} // Make entire row clickable to select the organization
+          className="flex justify-between items-center py-2 px-4 cursor-pointer hover:bg-gray-200 rounded-lg transition duration-200"
         >
-          {/* Organization name - clickable to select the organization */}
-          <span
-            onClick={() => onSelect(org._id, org.name)} // Call the onSelect prop when clicked
-            className="cursor-pointer text-lg text-blue-600" // Style to make it look clickable
-          >
-            {org.name}
-          </span>
+          {/* Organization name */}
+          <span className="text-lg text-blue-600">{org.name}</span>
 
           {/* Edit and Delete buttons */}
           <div>
             <button
-              onClick={() => onUpdate(org._id)} // Call the onUpdate prop when the "Edit" button is clicked
-              className="text-blue-500 mx-2" // Styling for the "Edit" button
+              onClick={(e) => handleEdit(e, org._id, org.name)} // Pass event and prevent row click
+              className="text-blue-500 mx-2"
             >
               Edit
             </button>
             <button
-              onClick={() => onDelete(org._id)} // Call the onDelete prop when the "Delete" button is clicked
-              className="text-red-500 mx-2" // Styling for the "Delete" button
+              onClick={(e) => handleDelete(e, org._id, org.name)} // Pass event and prevent row click
+              className="text-red-500 mx-2"
             >
               Delete
             </button>

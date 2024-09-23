@@ -49,27 +49,31 @@ router.put("/organizations/:orgId", async (req: Request, res: Response) => {
       { name },
       { new: true }
     ); // Update organization name
-    if (!updatedOrg)
-      return res.status(404).json({ error: "Organization not found" }); // If organization not found
+    if (!updatedOrg) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
     res.status(200).json(updatedOrg); // Respond with the updated organization data
   } catch (error) {
-    res.status(500).json({ error: "Error updating organization" }); // Error handling
+    res.status(500).json({ error: "Error updating organization" });
   }
 });
 
 // Route to delete an organization and its associated systems
 router.delete("/organizations/:orgId", async (req: Request, res: Response) => {
   try {
-    const { orgId } = req.params; // Extract organization ID from the URL params
-    const deletedOrg = await Organization.findByIdAndDelete(orgId); // Delete the organization
-    if (!deletedOrg)
-      return res.status(404).json({ error: "Organization not found" }); // If organization not found
-    await System.deleteMany({ organization: orgId }); // Delete all systems associated with this organization
+    const { orgId } = req.params;
+    console.log("Deleting organization with ID:", orgId); // Add this log
+    const deletedOrg = await Organization.findByIdAndDelete(orgId);
+    if (!deletedOrg) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+    await System.deleteMany({ organization: orgId }); // Delete all systems
     res
       .status(200)
-      .json({ message: "Organization and related systems deleted" }); // Success response
+      .json({ message: "Organization and related systems deleted" });
   } catch (error) {
-    res.status(500).json({ error: "Error deleting organization" }); // Error handling
+    console.error("Error deleting organization:", error);
+    res.status(500).json({ error: "Error deleting organization" });
   }
 });
 
