@@ -19,6 +19,14 @@ const SystemSchema = new mongoose.Schema({
     make: { type: String }, // Make of the vehicle
     model: { type: String }, // Model of the vehicle
   },
+
+  // New emissions-related fields
+  emissions: {
+    co2: { type: Number }, // CO2 emissions (in kilograms, for example)
+    efficiency: { type: Number }, // Efficiency (percentage)
+    recommendations: { type: String }, // Recommendations for improvement
+  },
+
   organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization" }, // Reference to organization
   createdAt: { type: Date, default: Date.now }, // Automatically set creation date
 });

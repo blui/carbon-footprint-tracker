@@ -1,21 +1,20 @@
-/* client/src/tailwind.css */
-
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
 
-/* Import Tailwind's base styles (resets and default styles for elements) */
+/* Import Tailwind's base styles */
 @tailwind base;
 
-/* Import Tailwind's component classes (predefined styles for common UI components) */
+/* Import Tailwind's component classes */
 @tailwind components;
 
-/* Import Tailwind's utility classes (utility-first approach for styling, such as padding, margins, etc.) */
+/* Import Tailwind's utility classes */
 @tailwind utilities;
 
-/* Ensure global font and input focus styles */
+/* Global font family for body and interactive elements */
 body {
   font-family: "Inter", sans-serif;
 }
 
+/* Input, select, and textarea elements - global font and rounded borders */
 input,
 select,
 textarea {
@@ -23,10 +22,64 @@ textarea {
   border-radius: 0.375rem;
 }
 
+/* Focus styles for inputs, selects, textareas */
 input:focus,
 select:focus,
 textarea:focus {
   border-color: #1e3a8a; /* Primary blue */
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.5); /* Soft blue ring */
   outline: none;
+}
+
+/* Focus styles for buttons and links */
+button:focus,
+a:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.5);
+  outline: none;
+}
+
+/* Global heading styles */
+h1 {
+  font-size: 2.25rem; /* Larger font size for H1 */
+  font-weight: 700; /* Bold */
+  color: #1f2937; /* Gray-800 */
+}
+
+h2 {
+  font-size: 1.875rem; /* H2 font size */
+  font-weight: 600; /* Semi-bold */
+  color: #1f2937; /* Gray-800 */
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151; /* Gray-700 */
+}
+
+/* Custom primary button styles (can be reused across the app) */
+.btn-primary {
+  background-color: #2563eb; /* Blue-600 */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8; /* Blue-700 on hover */
+}
+
+/* Secondary button styles */
+.btn-secondary {
+  background-color: #6b7280; /* Gray-500 */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #4b5563; /* Gray-600 on hover */
 }

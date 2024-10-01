@@ -205,55 +205,61 @@ const App = () => {
                       if (systemToEdit.type === "workflowSystem") {
                         const updatedName = prompt(
                           "Enter updated workflow name",
-                          systemToEdit.name || ""
+                          systemToEdit.workflowSystem?.name || ""
                         );
                         const updatedWorkflow = prompt(
                           "Enter updated workflow items",
-                          systemToEdit.workflow
-                            ? systemToEdit.workflow.join(", ")
-                            : ""
+                          systemToEdit.workflowSystem?.workflow || ""
                         );
 
                         updatedDetails = {
-                          name: updatedName ? updatedName : systemToEdit.name,
+                          name: updatedName
+                            ? updatedName
+                            : systemToEdit.workflowSystem?.name,
                           workflow: updatedWorkflow
                             ? updatedWorkflow
-                            : systemToEdit.workflow,
+                            : systemToEdit.workflowSystem?.workflow,
                         };
                       } else if (systemToEdit.type === "vendorSystem") {
                         const updatedName = prompt(
                           "Enter updated vendor name",
-                          systemToEdit.name || ""
+                          systemToEdit.vendorSystem?.name || ""
                         );
                         const updatedClassification = prompt(
                           "Enter updated vendor classification",
-                          systemToEdit.classification || ""
+                          systemToEdit.vendorSystem?.classification || ""
                         );
                         updatedDetails = {
-                          name: updatedName ? updatedName : systemToEdit.name,
+                          name: updatedName
+                            ? updatedName
+                            : systemToEdit.vendorSystem?.name,
                           classification: updatedClassification
                             ? updatedClassification
-                            : systemToEdit.classification,
+                            : systemToEdit.vendorSystem?.classification,
                         };
                       } else if (systemToEdit.type === "vehicleSystem") {
                         const updatedYear = prompt(
                           "Enter updated vehicle year",
-                          systemToEdit.year?.toString() || ""
+                          systemToEdit.vehicleSystem?.year?.toString() || ""
                         );
                         const updatedMake = prompt(
                           "Enter updated vehicle make",
-                          systemToEdit.make || ""
+                          systemToEdit.vehicleSystem?.make || ""
                         );
                         const updatedModel = prompt(
                           "Enter updated vehicle model",
-                          systemToEdit.model || ""
+                          systemToEdit.vehicleSystem?.model || ""
                         );
                         updatedDetails = {
-                          year: updatedYear ? updatedYear : systemToEdit.year,
-                          make: updatedMake ? updatedMake : systemToEdit.make,
+                          year: updatedYear
+                            ? updatedYear
+                            : systemToEdit.vehicleSystem?.year,
+                          make: updatedMake
+                            ? updatedMake
+                            : systemToEdit.vehicleSystem?.make,
                           model: updatedModel
                             ? updatedModel
-                            : systemToEdit.model,
+                            : systemToEdit.vehicleSystem?.model,
                         };
                       }
 

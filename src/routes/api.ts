@@ -83,8 +83,18 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { orgId } = req.params;
-      const { type, name, workflow, classification, year, make, model } =
-        req.body;
+      const {
+        type,
+        name,
+        workflow,
+        classification,
+        year,
+        make,
+        model,
+        emissions,
+        efficiency,
+        recommendations,
+      } = req.body;
 
       // Find the organization by ID
       const organization = await Organization.findById(orgId);
@@ -93,19 +103,23 @@ router.post(
       }
 
       // Initialize systemData object with common fields
-      let systemData: Record<string, any> = { type, organization: orgId };
+      let systemData: Record<string, any> = {
+        type,
+        organization: orgId,
+        emissions: emissions || null, // Add emissions field
+        efficiency: efficiency || null, // Add efficiency field
+        recommendations: recommendations || null, // Add recommendations field
+      };
 
       // Handle system type and its specific fields
       if (type === "workflowSystem") {
-        // Check that 'name' and 'workflow' are provided for workflow systems
         if (!name || !workflow) {
           return res.status(400).json({
             error: "Invalid or missing workflow data",
           });
         }
-        systemData.workflowSystem = { name, workflow }; // Expecting workflow as a string
+        systemData.workflowSystem = { name, workflow };
       } else if (type === "vendorSystem") {
-        // Validate 'name' and 'classification' for vendor systems
         if (!name || !classification) {
           return res.status(400).json({
             error: "Invalid or missing vendor system data",
@@ -113,7 +127,6 @@ router.post(
         }
         systemData.vendorSystem = { name, classification };
       } else if (type === "vehicleSystem") {
-        // Validate vehicle details (year, make, model)
         if (!year || !make || !model) {
           return res.status(400).json({
             error: "Invalid or missing vehicle details",
@@ -134,7 +147,6 @@ router.post(
 
       res.status(201).json(newSystem);
     } catch (error: any) {
-      // Log the error for debugging
       console.error("Error adding system:", error);
       res
         .status(500)
@@ -143,7 +155,7 @@ router.post(
   }
 );
 
-// Route to fetch all systems for a given organization
+// Route to fetch all systems for a given organization, including emissions and efficiency
 router.get(
   "/organizations/:orgId/systems",
   async (req: Request, res: Response) => {
@@ -151,14 +163,29 @@ router.get(
       const { orgId } = req.params;
 
       // Fetch systems for the organization
-      const systems = await System.find({ organization: orgId }).lean(); // Use lean() for better performance
+      const systems = await System.find({ organization: orgId }).lean();
 
       // Process systems to ensure proper structure
       const processedSystems = systems.map((system) => {
+        // Safely extract emissions and its fields if it exists
+        const emissionsData = system.emissions ?? {};
+        const emissions = emissionsData.co2 ?? "N/A";
+        const efficiency = emissionsData.efficiency ?? "N/A";
+        const recommendations = emissionsData.recommendations ?? "N/A";
+
+        // Base structure with common fields
+        const baseSystem = {
+          _id: system._id,
+          type: system.type,
+          emissions,
+          efficiency,
+          recommendations,
+        };
+
+        // Handle the specific fields based on system type
         if (system.type === "workflowSystem") {
           return {
-            _id: system._id,
-            type: system.type,
+            ...baseSystem,
             workflowSystem: {
               name: system.workflowSystem?.name || "N/A",
               workflow: system.workflowSystem?.workflow || "No workflow items",
@@ -166,8 +193,7 @@ router.get(
           };
         } else if (system.type === "vendorSystem") {
           return {
-            _id: system._id,
-            type: system.type,
+            ...baseSystem,
             vendorSystem: {
               name: system.vendorSystem?.name || "N/A",
               classification: system.vendorSystem?.classification || "N/A",
@@ -175,8 +201,7 @@ router.get(
           };
         } else if (system.type === "vehicleSystem") {
           return {
-            _id: system._id,
-            type: system.type,
+            ...baseSystem,
             vehicleSystem: {
               year: system.vehicleSystem?.year || "N/A",
               make: system.vehicleSystem?.make || "N/A",
@@ -184,12 +209,9 @@ router.get(
             },
           };
         } else {
-          return system; // Return unchanged for unexpected types
+          return baseSystem; // Return unchanged for unexpected types
         }
       });
-
-      // Log the processed systems to verify
-      console.log("Processed systems:", processedSystems);
 
       res.status(200).json(processedSystems);
     } catch (error: any) {
@@ -204,11 +226,25 @@ router.put(
   "/organizations/:orgId/systems/:systemId",
   async (req: Request, res: Response) => {
     try {
-      const { systemId } = req.params; // Extract system ID from URL params
-      const { type, name, workflow, classification, year, make, model } =
-        req.body; // Extract system details
+      const { systemId } = req.params;
+      const {
+        type,
+        name,
+        workflow,
+        classification,
+        year,
+        make,
+        model,
+        emissions,
+        efficiency,
+        recommendations,
+      } = req.body;
 
-      let systemData: any = {}; // Initialize an empty object to hold system data
+      let systemData: any = {
+        emissions, // Include emissions update
+        efficiency, // Include efficiency update
+        recommendations, // Include recommendations update
+      };
 
       // Handle the system type and map it to the appropriate fields
       if (type === "workflowSystem") {
@@ -217,21 +253,24 @@ router.put(
             error: "Name and workflow are required for workflowSystem",
           });
         }
-        systemData = { type, workflowSystem: { name, workflow } };
+        systemData.type = type;
+        systemData.workflowSystem = { name, workflow };
       } else if (type === "vendorSystem") {
         if (!name || !classification) {
           return res.status(400).json({
             error: "Name and classification are required for vendorSystem",
           });
         }
-        systemData = { type, vendorSystem: { name, classification } };
+        systemData.type = type;
+        systemData.vendorSystem = { name, classification };
       } else if (type === "vehicleSystem") {
         if (!year || !make || !model) {
           return res.status(400).json({
             error: "Year, make, and model are required for vehicleSystem",
           });
         }
-        systemData = { type, vehicleSystem: { year, make, model } };
+        systemData.type = type;
+        systemData.vehicleSystem = { year, make, model };
       } else {
         return res.status(400).json({ error: "Invalid system type" });
       }
@@ -244,19 +283,16 @@ router.put(
       );
 
       if (!updatedSystem) {
-        return res.status(404).json({ error: "System not found" }); // If system not found
+        return res.status(404).json({ error: "System not found" });
       }
 
-      // Respond with the updated system data
       res.status(200).json(updatedSystem);
     } catch (error: unknown) {
-      // Check if the error is an instance of Error
       if (error instanceof Error) {
         res
           .status(500)
-          .json({ error: "Error updating system", details: error.message }); // Access the message
+          .json({ error: "Error updating system", details: error.message });
       } else {
-        // Handle cases where the error is not an instance of Error
         res.status(500).json({
           error: "Error updating system",
           details: "Unknown error occurred",

@@ -20,6 +20,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
     make: "",
     model: "",
   }); // Vehicle information
+
+  // New state for emissions and efficiency
+  const [emissions, setEmissions] = useState<number | "">(""); // Track emissions value
+  const [efficiency, setEfficiency] = useState<number | "">(""); // Track efficiency value
+
   const [error, setError] = useState<string | null>(null); // Track error message
 
   // Handle form submission
@@ -50,6 +55,12 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
       };
     }
 
+    // Ensure emissions and efficiency are provided
+    if (!emissions || !efficiency) {
+      setError("Please provide both emissions and efficiency values.");
+      return;
+    }
+
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/organizations/${orgId}/systems`,
@@ -58,6 +69,8 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: selectedType.toLowerCase() + "System",
+            emissions: emissions, // Include emissions
+            efficiency: efficiency, // Include efficiency
             ...systemDetails,
           }),
         }
@@ -73,6 +86,8 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
       setVendorName("");
       setVendorClassification("");
       setVehicleInfo({ year: "", make: "", model: "" });
+      setEmissions(""); // Clear emissions
+      setEfficiency(""); // Clear efficiency
       onSystemAdded();
     } catch (err: unknown) {
       console.error("Error adding system:", err); // Log the error for debugging
@@ -85,7 +100,7 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
       onSubmit={handleSubmit}
       className="p-6 bg-gray-100 rounded-lg shadow-md"
       style={{
-        height: "520px",
+        height: "600px", // Adjusted for additional fields
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -93,8 +108,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
     >
       <h2 className="text-xl font-semibold mb-4">Add System</h2>
 
-      <label className="block mb-2">System Type</label>
+      <label className="block mb-2" htmlFor="systemType">
+        System Type
+      </label>
       <select
+        id="systemType" // Add an id to associate with the label
         value={selectedType}
         onChange={(e) => setSelectedType(e.target.value)}
         className="w-full mb-4 p-2 border rounded"
@@ -111,8 +129,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         {selectedType === "Workflow" && (
           <>
             <div className="mb-4">
-              <label className="block mb-2">Workflow Name</label>
+              <label className="block mb-2" htmlFor="workflowName">
+                Workflow Name
+              </label>
               <input
+                id="workflowName"
                 type="text"
                 value={workflowName}
                 onChange={(e) => setWorkflowName(e.target.value)}
@@ -121,8 +142,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-2">Workflow</label>
+              <label className="block mb-2" htmlFor="workflowDescription">
+                Workflow
+              </label>
               <textarea
+                id="workflowDescription"
                 value={workflow}
                 onChange={(e) => setWorkflow(e.target.value)}
                 className="w-full p-2 border rounded"
@@ -135,8 +159,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         {selectedType === "Vendor" && (
           <>
             <div className="mb-4">
-              <label className="block mb-2">Vendor Name</label>
+              <label className="block mb-2" htmlFor="vendorName">
+                Vendor Name
+              </label>
               <input
+                id="vendorName"
                 type="text"
                 value={vendorName}
                 onChange={(e) => setVendorName(e.target.value)}
@@ -145,8 +172,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-2">Vendor Classification</label>
+              <label className="block mb-2" htmlFor="vendorClassification">
+                Vendor Classification
+              </label>
               <input
+                id="vendorClassification"
                 type="text"
                 value={vendorClassification}
                 onChange={(e) => setVendorClassification(e.target.value)}
@@ -160,8 +190,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
         {selectedType === "Vehicle" && (
           <>
             <div className="mb-4">
-              <label className="block mb-2">Vehicle Year</label>
+              <label className="block mb-2" htmlFor="vehicleYear">
+                Vehicle Year
+              </label>
               <input
+                id="vehicleYear"
                 type="text"
                 value={vehicleInfo.year}
                 onChange={(e) =>
@@ -172,8 +205,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-2">Vehicle Make</label>
+              <label className="block mb-2" htmlFor="vehicleMake">
+                Vehicle Make
+              </label>
               <input
+                id="vehicleMake"
                 type="text"
                 value={vehicleInfo.make}
                 onChange={(e) =>
@@ -184,8 +220,11 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block mb-2">Vehicle Model</label>
+              <label className="block mb-2" htmlFor="vehicleModel">
+                Vehicle Model
+              </label>
               <input
+                id="vehicleModel"
                 type="text"
                 value={vehicleInfo.model}
                 onChange={(e) =>
@@ -197,6 +236,34 @@ const SystemForm: React.FC<SystemFormProps> = ({ orgId, onSystemAdded }) => {
             </div>
           </>
         )}
+
+        {/* Emissions and Efficiency fields for all systems */}
+        <div className="mb-4">
+          <label className="block mb-2" htmlFor="emissions">
+            Emissions (kg CO2)
+          </label>
+          <input
+            id="emissions"
+            type="number"
+            value={emissions}
+            onChange={(e) => setEmissions(Number(e.target.value))}
+            className="w-full p-2 border rounded"
+            placeholder="Enter emissions"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2" htmlFor="efficiency">
+            Efficiency (%)
+          </label>
+          <input
+            id="efficiency"
+            type="number"
+            value={efficiency}
+            onChange={(e) => setEfficiency(Number(e.target.value))}
+            className="w-full p-2 border rounded"
+            placeholder="Enter efficiency"
+          />
+        </div>
       </div>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}

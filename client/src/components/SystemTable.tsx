@@ -4,6 +4,8 @@ import React from "react";
 interface System {
   _id: string;
   type: string; // 'workflowSystem', 'vendorSystem', 'vehicleSystem'
+  emissions: number; // Emissions value for the system
+  efficiency: number; // Efficiency value for the system
   workflowSystem?: {
     name: string;
     workflow: string;
@@ -26,74 +28,76 @@ interface SystemTableProps {
   onEditSystem: (systemId: string) => void; // Edit system handler
 }
 
-// Unified table that displays all system types with consistent column structure
-const SystemTable: React.FC<SystemTableProps> = ({
-  systems,
-  onDeleteSystem,
-  onEditSystem,
-}) => {
+// A helper function to render each system type table
+const renderTable = (
+  systems: System[],
+  onDeleteSystem: (systemId: string) => void,
+  onEditSystem: (systemId: string) => void,
+  systemType: string,
+  columns: React.ReactNode
+) => {
   return (
-    <>
-      <h2 className="text-2xl font-semibold mb-6">System Information</h2>
-
-      <table className="min-w-full table-auto bg-white shadow-lg">
-        <thead>
-          <tr>
-            <th className="px-4 py-2 w-1/5">Type</th>
-            <th className="px-4 py-2 w-2/5">Details</th>
-            <th className="px-4 py-2 w-1/5">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {systems.map((system) => (
+    <table className="min-w-full table-auto bg-white shadow-lg mb-6">
+      <thead>
+        <tr>
+          {columns}
+          <th className="px-4 py-2 w-1/5">Emissions (kg CO2)</th>
+          <th className="px-4 py-2 w-1/5">Efficiency (%)</th>
+          <th className="px-4 py-2 w-1/5">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {systems
+          .filter((system) => system.type === systemType)
+          .map((system) => (
             <tr key={system._id}>
-              <td className="border px-4 py-2">{system.type}</td>
+              {/* WorkflowSystem Details */}
+              {system.type === "workflowSystem" && system.workflowSystem && (
+                <>
+                  <td className="border px-4 py-2">
+                    {system.workflowSystem.name || "N/A"}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {system.workflowSystem.workflow || "No workflow items"}
+                  </td>
+                </>
+              )}
+
+              {/* VendorSystem Details */}
+              {system.type === "vendorSystem" && system.vendorSystem && (
+                <>
+                  <td className="border px-4 py-2">
+                    {system.vendorSystem.name || "N/A"}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {system.vendorSystem.classification || "N/A"}
+                  </td>
+                </>
+              )}
+
+              {/* VehicleSystem Details */}
+              {system.type === "vehicleSystem" && system.vehicleSystem && (
+                <>
+                  <td className="border px-4 py-2">
+                    {system.vehicleSystem.year || "N/A"}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {system.vehicleSystem.make || "N/A"}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {system.vehicleSystem.model || "N/A"}
+                  </td>
+                </>
+              )}
+
+              {/* Common Emissions and Efficiency columns */}
               <td className="border px-4 py-2">
-                {/* WorkflowSystem Details */}
-                {system.type === "workflowSystem" && system.workflowSystem && (
-                  <>
-                    <p>
-                      <strong>Name:</strong>{" "}
-                      {system.workflowSystem.name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Workflow:</strong>{" "}
-                      {system.workflowSystem.workflow || "No workflow items"}
-                    </p>
-                  </>
-                )}
-
-                {/* VendorSystem Details */}
-                {system.type === "vendorSystem" && system.vendorSystem && (
-                  <>
-                    <p>
-                      <strong>Name:</strong> {system.vendorSystem.name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Classification:</strong>{" "}
-                      {system.vendorSystem.classification || "N/A"}
-                    </p>
-                  </>
-                )}
-
-                {/* VehicleSystem Details */}
-                {system.type === "vehicleSystem" && system.vehicleSystem && (
-                  <>
-                    <p>
-                      <strong>Year:</strong>{" "}
-                      {system.vehicleSystem.year || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Make:</strong>{" "}
-                      {system.vehicleSystem.make || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Model:</strong>{" "}
-                      {system.vehicleSystem.model || "N/A"}
-                    </p>
-                  </>
-                )}
+                {system.emissions !== undefined ? system.emissions : "N/A"}
               </td>
+              <td className="border px-4 py-2">
+                {system.efficiency !== undefined ? system.efficiency : "N/A"}
+              </td>
+
               <td className="border px-4 py-2">
                 <button
                   onClick={() => onEditSystem(system._id)}
@@ -110,8 +114,54 @@ const SystemTable: React.FC<SystemTableProps> = ({
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+      </tbody>
+    </table>
+  );
+};
+
+const SystemTable: React.FC<SystemTableProps> = ({
+  systems,
+  onDeleteSystem,
+  onEditSystem,
+}) => {
+  return (
+    <>
+      <h2 className="text-2xl font-semibold mb-6">Workflow Systems</h2>
+      {renderTable(
+        systems,
+        onDeleteSystem,
+        onEditSystem,
+        "workflowSystem",
+        <>
+          <th className="px-4 py-2">Name</th>
+          <th className="px-4 py-2">Workflow</th>
+        </>
+      )}
+
+      <h2 className="text-2xl font-semibold mb-6">Vendor Systems</h2>
+      {renderTable(
+        systems,
+        onDeleteSystem,
+        onEditSystem,
+        "vendorSystem",
+        <>
+          <th className="px-4 py-2">Vendor Name</th>
+          <th className="px-4 py-2">Classification</th>
+        </>
+      )}
+
+      <h2 className="text-2xl font-semibold mb-6">Vehicle Systems</h2>
+      {renderTable(
+        systems,
+        onDeleteSystem,
+        onEditSystem,
+        "vehicleSystem",
+        <>
+          <th className="px-4 py-2">Year</th>
+          <th className="px-4 py-2">Make</th>
+          <th className="px-4 py-2">Model</th>
+        </>
+      )}
     </>
   );
 };

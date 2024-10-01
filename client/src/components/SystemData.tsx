@@ -1,7 +1,14 @@
-// client/src/components/SystemData.tsx
+import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../config";
 
-import React, { useEffect, useState } from "react"; // Import React and hooks
-import API_BASE_URL from "../config"; // Import the base URL for making API calls
+// Define a type for the fetched system data
+interface SystemData {
+  emissions: {
+    co2: number; // Emissions in CO2 kg
+  };
+  efficiency: number; // Efficiency in percentage
+  recommendations: string; // Recommendations for improvement
+}
 
 // Define the props interface to ensure type safety
 interface SystemDataProps {
@@ -10,14 +17,14 @@ interface SystemDataProps {
 
 // Main functional component to fetch and display system data (emissions, efficiency, recommendations)
 const SystemData: React.FC<SystemDataProps> = ({ systemId }) => {
-  const [data, setData] = useState<any>(null); // State to store the fetched system data
+  const [data, setData] = useState<SystemData | null>(null); // State to store the fetched system data with proper type
   const [error, setError] = useState<string | null>(null); // State to store any error messages
 
   // useEffect hook to fetch system data when the component mounts or when systemId changes
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Send GET request to fetch emissions and recommendations for the specified system
+        // Send GET request to fetch emissions, efficiency, and recommendations for the specified system
         const response = await fetch(
           `${API_BASE_URL}/api/systems/${systemId}/data`
         );
@@ -51,8 +58,8 @@ const SystemData: React.FC<SystemDataProps> = ({ systemId }) => {
       <h2 className="text-xl font-semibold mb-4">
         Emissions and Recommendations
       </h2>
-      <p className="mb-2">Emissions: {data.emissions}</p>
-      <p className="mb-2">Efficiency: {data.efficiency}</p>
+      <p className="mb-2">Emissions: {data.emissions?.co2} kg CO2</p>
+      <p className="mb-2">Efficiency: {data.efficiency}%</p>
       <p className="mb-2">Recommendations: {data.recommendations}</p>
     </div>
   );
